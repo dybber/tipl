@@ -1,0 +1,7 @@
+tex/*/*.aux
+tex/*/*.bbl
+tex/*/*.blg
+tex/*/*.pdf
+tex/*/*.log
+tex/auto
+tex/*/auto
