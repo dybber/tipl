@@ -1,93 +1,72 @@
-%-----------------------------------------------------------------------------
-%
-%               Template for TPL course using the sigplanconf LaTeX Class
-%
-% Name:         ACMsigplan-template.tex
-%
-% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
-%               file for ACM SIGPLAN conference proceedings.
-%
-%-----------------------------------------------------------------------------
+\documentclass[10pt]{../sigplanconf}
 
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
 
-\documentclass[10pt]{sigplanconf}
-
-%%%%% YOUR PACKAGES %%%%%
 \usepackage{amsmath}
-
-%%%%% END %%%%%
-
-
+\usepackage{graphicx}
 
 \begin{document}
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.} 
 
+\title{To Trim a Perfect Process Tree}
+%\subtitle{Subtitle Text, if any}
 
-
-%%%%% YOUR TITLE %%%%%
-\title{Title Text}
-\subtitle{Subtitle Text, if any}
-
-%%%%% YOUR NAMES %%%%%
-\authorinfo{Name1 \and Name2}
+\authorinfo{Martin Dybdal}
+           {dybber@dybber.dk}
            {DIKU, Department of Computer Science, University of Copenhagen}
-           {Email1 \and Email2}
-%\authorinfo{Name3}
-%           {Affiliation3}
-%           {Email3}
+
+\authorinfo{Ulrik Rasmussen}
+           {dolle@diku.dk}
+           {DIKU, Department of Computer Science, University of Copenhagen}
+
+\authorpermission
+\copyrightdata{abstract}
 
 \maketitle
 
 
-%%%%% YOUR ABSTRACT %%%%%
 \begin{abstract}
-This is the text of the abstract.
+  The Universal Resolving Algorithm\cite{abramov2000universal} is an
+  algorithm for program inversion, based on the notion of a perfect
+  process tree for representing the possible traces of a program. A
+  process tree will often have an infinite representation, meaning
+  that program inversion does not always terminate.
+
+  We investigate two methods for minimizing the size of a process tree
+  and representing it in finite form, respectively.
+
+  The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
+  used to identify programs that terminate for all inputs, and
+  size-change graphs resulting from this approach may be used to cut
+  branches in a process tree, minimizing its size. We are not aware of
+  any uses of SCTA in the field of program inversion, but in this
+  report we will investigate whether this approach is feasible.
+
+  Generation of process trees by driving is a technique that
+  originates from the field of
+  supercompilation\cite{sorensen1998introduction}. A positive
+  supercompiler uses a technique called \emph{generalization} to
+  ensure that it will eventually arrive at a process tree with a
+  finite representation, which still represents all possible
+  configurations of the program. To our knowledge, the same technique
+  has not been applied to the field of program inversion.
 \end{abstract}
 
+\keywords Program Inversion, Size Change Termination Analysis,
+Generalization.
 
-%%%%% YOUR KEYWORDS %%%%%
-% 3 to 5 general words (or topics like "reversible computing") that relates most to the content.
-\keywords
-keyword1, keyword2
+\newpage
+\begin{center}
+  \includegraphics[width=0.7\columnwidth]{../figures/pruning.pdf}
+\end{center}
 
-
-%%%%% YOUR CONTENT %%%%%
-\section{Introduction}
-
-The text of the paper begins here.
-
-
-
-\section{Section 2}
-Reversible computing is interesting and builds on work by Bennett~\cite{Bennett:1982}. Applications of these principles can be found in~\cite{ThomsenAxelsen:2009:PPL,YokoyamaGlueck:2007:Janus}.
-
-\subsection{A subsection}
-
-
-\subsubsection{A subsubsection}
-
-
-\section{Conclusion}
-
-
-
-
-%%%%% YOUR ACKNOWLEDGEMENTS %%%%%
-\acks
-Acknowledgments, if needed.
-
-
-
-%%%%% YOUR BIBLIOGRAPHY %%%%%
 \bibliographystyle{abbrvnat}
-% The file where you have bibliography: ACM-template.bib
-\bibliography{ACM-template}
+\bibliography{../bibliography}
 
-%%%%% YOUR APPENDIX %%%%%
-\appendix
-\section{Appendix Title}
+% \appendix
+% \section{Appendix Title}
 
-This is the text of the appendix, if you need one.
 
 
 
