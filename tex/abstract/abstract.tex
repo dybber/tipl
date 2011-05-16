@@ -1,0 +1,92 @@
+\documentclass[10pt,a4paper,final,oneside,openany,article]{memoir}
+
+%BASIC PACKAGES
+\usepackage[danish,english]{babel} % last language decides document language!
+\usepackage[utf8x]{inputenc}          %text encoding
+\usepackage{amsmath,amssymb, amsbsy}  % math
+\usepackage{graphicx}
+\usepackage[british]{isodate}
+\usepackage[style=alphabetic,natbib=true]{biblatex}
+\usepackage{amsmath}
+\usepackage{booktabs} % nicer spacing between table rulers
+\usepackage{microtype}
+\usepackage{todonotes}
+\presetkeys{todonotes}{inline}{}
+
+\usepackage{fixltx2e} % To prevent the figures from being placed out-of-order with respect to their "non-starred" counterparts
+
+%\bibliographystyle{apalike}
+\bibliography{../bibliography}
+
+
+\newsubfloat{figure}
+
+%FONT
+\usepackage[T1]{fontenc}
+\usepackage{palatino}              % font : garamond
+\linespread{1.05}                  % Palatino needs more leading (space between lines)
+\usepackage[scaled]{beramono}
+\renewcommand{\ttdefault}{cmtt}    % alternative monospace font
+
+% customize chapter pages
+\makepagestyle{myheadings}
+\makepagestyle{myheadingschapterpage}
+\makeevenfoot{myheadingschapterpage}{}{\thepage}{}
+\makeoddfoot{myheadingschapterpage}{}{\thepage}{}
+\aliaspagestyle{chapter}{myheadingschapterpage}
+\aliaspagestyle{title}{myheadingschapterpage}
+\makeevenhead{myheadings}{}{\scshape \thetitle}{}
+\makeoddhead{myheadings}{}{\footnotesize\scshape \thetitle}{}
+\makeevenfoot{myheadings}{}{\thepage}{}
+\makeoddfoot{myheadings}{}{\thepage}{}
+\pagestyle{myheadings}
+
+
+%SECTION TITLES
+\def\thefigure{\arabic{figure}}
+\setcounter{tocdepth}{0}
+
+
+%FIGURE CAPTIONS
+\usepackage{sidecap}
+\usepackage{caption}
+\captionsetup{margin=0pt, font=small, labelfont=bf, format=hang}
+\setlength{\abovecaptionskip}{0pt}
+\setlength{\belowcaptionskip}{0pt}
+
+%DOCUMENT INFO
+\title{\vspace{-1.5cm}
+TIPL
+}
+\author{
+  Martin Dybdal -- \texttt{dybber@dybber.dk}
+\\
+Ulrik Rasmussion -- \texttt{dolle@diku.dk}}
+
+%\datebritish
+\date{\today}
+
+\newcommand{\subimgwidth}{.48\textwidth}
+\newcommand{\imgwidth}{.85\textwidth}
+
+\setcounter{secnumdepth}{1}
+\setcounter{chapter}{0}
+\setsecheadstyle{\large\bfseries\raggedright}
+\setsubsecheadstyle{\bfseries}
+
+\twocoltocetc
+% \setlength{\absleftindent}{1.5cm}
+% \setlength{\absrightindent}{\absleftindent}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  Science. It works!
+\end{abstract}
+
+\defbibheading{bibliography}{\chapter{Bibliography}} 
+\printbibliography
+
+\end{document}
+
