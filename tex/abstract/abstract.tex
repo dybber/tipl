@@ -1,92 +1,94 @@
-\documentclass[10pt,a4paper,final,oneside,openany,article]{memoir}
+%-----------------------------------------------------------------------------
+%
+%               Template for TPL course using the sigplanconf LaTeX Class
+%
+% Name:         ACMsigplan-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for ACM SIGPLAN conference proceedings.
+%
+%-----------------------------------------------------------------------------
 
-%BASIC PACKAGES
-\usepackage[danish,english]{babel} % last language decides document language!
-\usepackage[utf8x]{inputenc}          %text encoding
-\usepackage{amsmath,amssymb, amsbsy}  % math
-\usepackage{graphicx}
-\usepackage[british]{isodate}
-\usepackage[style=alphabetic,natbib=true]{biblatex}
+
+\documentclass[10pt]{sigplanconf}
+
+%%%%% YOUR PACKAGES %%%%%
 \usepackage{amsmath}
-\usepackage{booktabs} % nicer spacing between table rulers
-\usepackage{microtype}
-\usepackage{todonotes}
-\presetkeys{todonotes}{inline}{}
 
-\usepackage{fixltx2e} % To prevent the figures from being placed out-of-order with respect to their "non-starred" counterparts
+%%%%% END %%%%%
 
-%\bibliographystyle{apalike}
-\bibliography{../bibliography}
-
-
-\newsubfloat{figure}
-
-%FONT
-\usepackage[T1]{fontenc}
-\usepackage{palatino}              % font : garamond
-\linespread{1.05}                  % Palatino needs more leading (space between lines)
-\usepackage[scaled]{beramono}
-\renewcommand{\ttdefault}{cmtt}    % alternative monospace font
-
-% customize chapter pages
-\makepagestyle{myheadings}
-\makepagestyle{myheadingschapterpage}
-\makeevenfoot{myheadingschapterpage}{}{\thepage}{}
-\makeoddfoot{myheadingschapterpage}{}{\thepage}{}
-\aliaspagestyle{chapter}{myheadingschapterpage}
-\aliaspagestyle{title}{myheadingschapterpage}
-\makeevenhead{myheadings}{}{\scshape \thetitle}{}
-\makeoddhead{myheadings}{}{\footnotesize\scshape \thetitle}{}
-\makeevenfoot{myheadings}{}{\thepage}{}
-\makeoddfoot{myheadings}{}{\thepage}{}
-\pagestyle{myheadings}
-
-
-%SECTION TITLES
-\def\thefigure{\arabic{figure}}
-\setcounter{tocdepth}{0}
-
-
-%FIGURE CAPTIONS
-\usepackage{sidecap}
-\usepackage{caption}
-\captionsetup{margin=0pt, font=small, labelfont=bf, format=hang}
-\setlength{\abovecaptionskip}{0pt}
-\setlength{\belowcaptionskip}{0pt}
-
-%DOCUMENT INFO
-\title{\vspace{-1.5cm}
-TIPL
-}
-\author{
-  Martin Dybdal -- \texttt{dybber@dybber.dk}
-\\
-Ulrik Rasmussion -- \texttt{dolle@diku.dk}}
-
-%\datebritish
-\date{\today}
-
-\newcommand{\subimgwidth}{.48\textwidth}
-\newcommand{\imgwidth}{.85\textwidth}
-
-\setcounter{secnumdepth}{1}
-\setcounter{chapter}{0}
-\setsecheadstyle{\large\bfseries\raggedright}
-\setsubsecheadstyle{\bfseries}
-
-\twocoltocetc
-% \setlength{\absleftindent}{1.5cm}
-% \setlength{\absrightindent}{\absleftindent}
 
 
 \begin{document}
+\conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.} 
+
+
+
+%%%%% YOUR TITLE %%%%%
+\title{Title Text}
+\subtitle{Subtitle Text, if any}
+
+%%%%% YOUR NAMES %%%%%
+\authorinfo{Name1 \and Name2}
+           {DIKU, Department of Computer Science, University of Copenhagen}
+           {Email1 \and Email2}
+%\authorinfo{Name3}
+%           {Affiliation3}
+%           {Email3}
+
 \maketitle
+
+
+%%%%% YOUR ABSTRACT %%%%%
 \begin{abstract}
-  Science. It works!
+This is the text of the abstract.
 \end{abstract}
 
-\defbibheading{bibliography}{\chapter{Bibliography}} 
-\printbibliography
+
+%%%%% YOUR KEYWORDS %%%%%
+% 3 to 5 general words (or topics like "reversible computing") that relates most to the content.
+\keywords
+keyword1, keyword2
+
+
+%%%%% YOUR CONTENT %%%%%
+\section{Introduction}
+
+The text of the paper begins here.
+
+
+
+\section{Section 2}
+Reversible computing is interesting and builds on work by Bennett~\cite{Bennett:1982}. Applications of these principles can be found in~\cite{ThomsenAxelsen:2009:PPL,YokoyamaGlueck:2007:Janus}.
+
+\subsection{A subsection}
+
+
+\subsubsection{A subsubsection}
+
+
+\section{Conclusion}
+
+
+
+
+%%%%% YOUR ACKNOWLEDGEMENTS %%%%%
+\acks
+Acknowledgments, if needed.
+
+
+
+%%%%% YOUR BIBLIOGRAPHY %%%%%
+\bibliographystyle{abbrvnat}
+% The file where you have bibliography: ACM-template.bib
+\bibliography{ACM-template}
+
+%%%%% YOUR APPENDIX %%%%%
+\appendix
+\section{Appendix Title}
+
+This is the text of the appendix, if you need one.
+
+
 
 \end{document}
-
