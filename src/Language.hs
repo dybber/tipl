@@ -13,6 +13,7 @@ newtype Index = I Integer
   deriving (Eq, Ord, Show)
 
 newtype Program = Program [Definition]
+  deriving (Show)
 
 data Definition = FunD FName [XName] Expression
   deriving (Show)

@@ -55,7 +55,7 @@ index :: Parser Index
 index = I <$> natural
 
 program :: Parser Program
-program = Program <$> many definition <* eof
+program = Program <$> many1 definition <* eof
 
 definition :: Parser Definition
 definition = FunD <$> fname <*> parens (xname `sepBy` comma) <* symbol "=" <*> expression
@@ -68,13 +68,13 @@ expression =   app
            <|> if_
            <|> parens expression
   where
-    app = (try $ AppE <$> fname <*> parens exprList) <?> "function application"
+    app = try (AppE <$> fname <*> parens exprList)
     var = VarE <$> xname
     cons = ConsE <$> cname <*> parens exprList
     if_ = IfE <$ reserved "if" <*> conditional
               <* reserved "then" <*> expression
               <* reserved "else" <*> expression
-    proj = ProjE <$ char '#' <*> cname <* dot <*> index <*> expression
+    proj = ProjE <$ char '#' <*> cname <* dot <*> index <*> parens expression
 
     conditional = do
       e <- expression
