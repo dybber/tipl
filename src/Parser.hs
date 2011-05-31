@@ -1,4 +1,4 @@
-module Parser(prog) where
+module Parser(prog, parseProgramFile) where
 
 import Text.Parsec hiding (optional)
 import Text.Parsec.Language
@@ -12,7 +12,7 @@ import Control.Applicative hiding ((<|>), many)
 import Language
 
 lDef = haskellStyle
-        { P.reservedNames = ["if","then","else","cons", "case", "of"]
+        { P.reservedNames = ["if","then","else","cons", "case", "of", "fun"]
         , P.reservedOpNames = ["=", "==", "->", "|"]
         }
 
@@ -30,7 +30,7 @@ natural = P.natural lexer
 dot = P.dot lexer
 
 
-symbols = lexeme $ many alphaNum
+symbols = lexeme $ many1 (alphaNum <|> oneOf "_-")
 
 fname :: Parser Fname
 fname = F <$> identifier
@@ -46,11 +46,11 @@ prog :: Parser Program
 prog = Prog <$> many definition <* eof
 
 definition :: Parser Definition
-definition = DefD <$> fname <*> many var <* reservedOp "=" <*> term
+definition = DefD <$ reserved "fun" <*> fname <*> many var <* reservedOp "=" <*> term
 
 term :: Parser Term
 term = parens term <|> call <|> if_ <|> case_ <|> (PexpT <$> pexp)
-  where call = CallT <$> fname <*> many pexp
+  where call = try (CallT <$> fname <*> many1 pexp)
         if_ = IfT <$> (EqaK <$ reserved "if" <*> paexp <* reservedOp "==" <*> paexp)
                   <*  reserved "then" <*> term
                   <*  reserved "else" <*> term
@@ -69,11 +69,14 @@ term = parens term <|> call <|> if_ <|> case_ <|> (PexpT <$> pexp)
           return $ IfT (ConsK e a b c) t1 t2
 
 pexp :: Parser Pexp
-pexp = consE <|> varE <|> (AtomE <$> paexp)
-  where consE = angles (ConsE <$> pexp <* comma <*> pexp)
-        varE = VarE <$> pevar
+pexp = consE <|> varE <|> (AtomP <$> paexp)
+  where consE = angles (ConsP <$> pexp <* comma <*> pexp)
+        varE = VarP <$> pevar
 
 paexp :: Parser PAexp
 paexp = atomA <|> varA
   where atomA = AtomPA <$ char '\'' <*> symbols
         varA = VarPA <$> pavar
+
+parseProgramFile :: String -> IO (Either ParseError Program)
+parseProgramFile = parseFromFile prog

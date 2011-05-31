@@ -17,9 +17,10 @@ import Control.Applicative
 ----------------
 data Dval = ConsD Dval Dval
           | AtomD DAval
+  deriving (Eq)
 
 data DAval = DAtom String
-
+  deriving (Eq)
 
 ----------------
 -- C-Expressions
@@ -27,25 +28,26 @@ data DAval = DAtom String
 data Cexp = ConsC Cexp Cexp
           | VarC CEvar
           | AtomC CAexp
+  deriving (Eq, Ord, Show)
 
 data CAexp = AtomCA String
            | VarCA CAvar
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 
 data Cvar = CEvar' CEvar
           | CAvar' CAvar
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 
 --------------------
 -- Typed C-variables
 --------------------
 data CEvar = CEvar String
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 data CAvar = CAvar String
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 
 ---------------------------
@@ -72,14 +74,8 @@ data Ineq = CAexp :#: CAexp
 ---------------
 type Theta = Map Cvar Cexp
 
-data SubstError = TypeError | OtherError String
-
-instance Error SubstError where
-  noMsg = OtherError "Unspecified error"
-  strMsg = OtherError
-
 class Subst a where
-  subst :: (MonadError SubstError m) => Theta -> a -> m a
+  subst :: (MonadError String m) => Theta -> a -> m a
 
 instance Subst Restr where
   subst theta r = do
@@ -110,7 +106,8 @@ instance Subst CAexp where
   subst theta e@(VarCA cavar) =
     case e' of
       AtomC caexp -> return $ caexp
-      _ -> throwError TypeError
+      _ -> throwError $ "Type error: Expected atom but got expression\
+                        \ when looking up variable '" ++ show cavar ++ "'"
     where e' = maybe (AtomC e) id $ M.lookup (CAvar' cavar) theta
 
 instance Subst CRpair where
