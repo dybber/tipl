@@ -2,7 +2,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Language where
+module Domains where
 
 import Data.Map (Map)
 import Data.Set (Set)
@@ -46,6 +46,7 @@ data CEvar = CEvar String
 
 data CAvar = CAvar String
   deriving (Eq, Ord)
+
 
 ---------------------------
 -- Restricted C-Expressions
@@ -121,3 +122,10 @@ instance Subst CRpair where
 ---------------
 type Kappa = Either Theta Restr
 
+
+------------------
+-- Pretty printing
+------------------
+instance Show Dval where
+  show (ConsD e1 e2) = "(cons " ++ show e1 ++ " " ++ show e2 ++ ")"
+  show (AtomD (DAtom s)) = "'" ++ s
