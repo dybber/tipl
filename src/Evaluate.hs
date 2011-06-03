@@ -1,7 +1,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Normalize where
+module Evaluate where
 
 import "mtl" Control.Monad.Error
 import "mtl" Control.Monad.Identity
@@ -19,11 +19,11 @@ instance (Encode a) => Encode [a] where
 instance Encode Integer where
   encode = AtomD . DAtom . show
 
-normalizeProgram :: String -> [Dval] -> IO ()
-normalizeProgram path dvs = do
+evalProgramFile :: String -> [Dval] -> IO ()
+evalProgramFile path dvs = do
   res <- parseProgramFile path
   case res of
     Left e -> putStrLn $ "Parse error: " ++ show e
-    Right p -> case runIdentity . runErrorT $ normalize p dvs of
+    Right p -> case runIdentity . runErrorT $ interp p dvs of
                  Left se -> putStrLn $ "Interpretation error: " ++ show se
                  Right v -> putStrLn $ show v

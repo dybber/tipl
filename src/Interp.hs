@@ -11,12 +11,14 @@ import "mtl" Control.Monad.Trans
 
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Function (fix)
 
 type ProgMap = Map Fname Definition
 
+(|->) :: (Ord k) => k -> a -> Map k a -> Map k a
 (|->) = M.insert
 
-interpIf :: (MonadError String m) => PDenv -> Cond -> Term -> Term -> m (Term, PDenv)
+interpIf :: (MonadError String m) => PDenv -> Cond -> Term -> Term -> m PDstate
 interpIf env (EqaK ea1 ea2) t1 t2 = do
   ed1 <- substEnv env (AtomP ea1)
   ed2 <- substEnv env (AtomP ea2)
@@ -33,9 +35,9 @@ interpIf env (ConsK pe xe1 xe2 xa) t1 t2 = do
     (AtomD _)     -> let env' = PAvar' xa |-> de $ env
                       in return (t2, env')
 
-interp :: (MonadError String m) => ProgMap -> Term -> PDenv -> m (Term, PDenv)
-interp gamma (IfT k t1 t2) env = interpIf env k t1 t2
-interp gamma (CallT f es) env =
+step :: (MonadError String m) => ProgMap -> PDstate -> m PDstate
+step gamma (IfT k t1 t2, env) = interpIf env k t1 t2
+step gamma (CallT f es, env) =
   case M.lookup f gamma of
     Nothing -> throwError $ "Unknown function '" ++ show f ++ "'"
     Just (DefD _ vs t) -> do
@@ -43,15 +45,16 @@ interp gamma (CallT f es) env =
       let env' = foldr ($) env $ zipWith (|->) vs es'
       return (t, env')
 
-normalize :: (MonadError String m) => Program -> [Dval] -> m Dval
-normalize (Prog defs) ds =
-  case M.lookup (F "main") progMap of
-    Nothing -> throwError $ "No main function defined"
-    Just (DefD _ vs t) -> normalize' (t, mkInitEnv vs ds)
-
-  where progMap = foldr ($) M.empty $ map mkInsert defs
-        mkInsert def@(DefD f _ _) = M.insert f def
+interp :: (MonadError String m) => Program -> [Dval] -> m Dval
+interp (Prog defs) ds =
+    fix (\f s@(t, env) ->
+             case t of
+               (PexpT pexp) -> substEnv env pexp
+               _            -> f =<< step progMap s
+        ) s_0
+  where freshVars = take (length ds) $ [PEvar $ "x" ++ show n | n <- [1..]]
+        progMap = foldr ($) M.empty $ map mkInsert defs
+        mkInsert def@(DefD f _ _) = f |-> def
         mkInitEnv vs ds = foldr ($) M.empty $ zipWith (|->) vs ds
-        normalize' (t, env) = case t of
-          (PexpT pexp) -> substEnv env pexp
-          _ -> interp progMap t env >>= normalize'
+        s_0 = ( CallT (F"main") $ map VarP freshVars
+              , mkInitEnv (map PEvar' freshVars) ds)
