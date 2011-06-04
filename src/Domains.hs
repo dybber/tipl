@@ -31,16 +31,16 @@ data DAval = DAtom String
 data Cexp = ConsC Cexp Cexp
           | VarC CEvar
           | AtomC CAexp
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 data CAexp = AtomCA String
            | VarCA CAvar
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 
 data Cvar = CEvar' CEvar
           | CAvar' CAvar
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 var :: Cexp -> Set Cvar
 var (ConsC e1 e2) = var e1 `S.union` var e2
@@ -55,10 +55,10 @@ ground ce = var ce == S.empty
 -- Typed C-variables
 --------------------
 data CEvar = CEvar String
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 data CAvar = CAvar String
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
 
 ---------------------------
@@ -160,3 +160,19 @@ type Split = (Contr, Contr)
 instance Show Dval where
   show (ConsD e1 e2) = "(cons " ++ show e1 ++ " " ++ show e2 ++ ")"
   show (AtomD (DAtom s)) = "'" ++ s
+
+
+instance Show Cexp where
+  show (ConsC e1 e2) = "(cons " ++ show e1 ++ " " ++ show e2 ++ ")"
+  show (VarC cev) = show cev
+  show (AtomC a) = show a
+
+instance Show CAexp where
+  show (AtomCA s) = "'" ++ s
+  show (VarCA v) = show v
+
+instance Show CEvar where
+  show (CEvar v) = v
+
+instance Show CAvar where
+  show (CAvar v) = "." ++ v

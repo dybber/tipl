@@ -19,6 +19,7 @@ instance Applicative (State s) where
 branch :: (Monad m) => [ListT m a] -> ListT m a
 branch = join . ListT . return
 
+(|->) :: (Ord k) => k -> a -> M.Map k a -> M.Map k a
 (|->) = M.insert
 
 data PPTstate =
@@ -108,10 +109,10 @@ traceCond env (ConsK e xe1 xe2 xa) t1 t2 =
           let env' = PEvar' xe1 |-> x1'
                    $ PEvar' xe2 |-> x2'
                    $ env
-          let k = Left $ M.singleton xc (ConsC x1' x2')
+          let k = Left $ M.singleton (CEvar' xc) (ConsC x1' x2')
           return ((t1, env'), k)
         brFalse xc = do
           x1' <- AtomC . VarCA <$> lift getFresh
-          let env' = xa |-> x1' $ env
-          let k = Left $ M.singleton xc x1'
+          let env' = PAvar' xa |-> x1' $ env
+          let k = Left $ M.singleton (CEvar' xc) x1'
           return ((t2, env'), k)
