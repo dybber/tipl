@@ -28,6 +28,7 @@ symbol = P.symbol lexer
 reservedOp = P.reservedOp lexer
 natural = P.natural lexer
 dot = P.dot lexer
+whiteSpace = P.whiteSpace lexer
 
 
 symbols = lexeme $ many1 (alphaNum <|> oneOf "_-")
@@ -79,4 +80,4 @@ paexp = atomA <|> varA
         varA = VarPA <$> pavar
 
 parseProgramFile :: String -> IO (Either ParseError Program)
-parseProgramFile = parseFromFile prog
+parseProgramFile = parseFromFile (whiteSpace >> prog)
