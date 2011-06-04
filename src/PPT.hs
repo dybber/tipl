@@ -103,11 +103,15 @@ traceCond env (ConsK e xe1 xe2 xa) t1 t2 =
     (VarC xc) -> branch [brTrue xc, brFalse xc]
   where e' = e ./ env
         brTrue xc = do
-          x1' <- VarC . CAvar' <$> lift getFresh
-          x2' <- VarC . CAvar' <$> lift getFresh
+          x1' <- VarC <$> lift getFresh
+          x2' <- VarC <$> lift getFresh
           let env' = PEvar' xe1 |-> x1'
                    $ PEvar' xe2 |-> x2'
                    $ env
-          let k = Left $ M.singleton (CEvar' xc) (ConsC x1' x2')
+          let k = Left $ M.singleton xc (ConsC x1' x2')
           return ((t1, env'), k)
-        brFalse xc = undefined
+        brFalse xc = do
+          x1' <- AtomC . VarCA <$> lift getFresh
+          let env' = xa |-> x1' $ env
+          let k = Left $ M.singleton xc x1'
+          return ((t2, env'), k)
