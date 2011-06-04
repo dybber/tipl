@@ -1,6 +1,10 @@
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE PackageImports #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE
+    TypeSynonymInstances
+  , MultiParamTypeClasses
+  , PackageImports
+  , FlexibleContexts
+  , FunctionalDependencies
+  #-}
 
 module Domains where
 
@@ -9,8 +13,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
-import "mtl" Control.Monad.Error
-import Control.Applicative
+import Control.Monad
 
 ----------------
 -- S-Expressions
@@ -89,36 +92,37 @@ isContra (da1 :#: da2) = da1 == da2
 ---------------
 type CCsub = Map Cvar Cexp
 
-class Subst a where
-  subst :: (Error e, MonadError e m) => CCsub -> a -> m a
+class Subst src sub dst | src sub -> dst
+    where (./) :: src -> sub -> dst
+infixl 7 ./
 
-instance Subst Restr where
-  subst theta r = do
-    r' <- S.fromList `liftM` (mapM (subst theta) $ S.elems r)
+instance Subst Restr CCsub Restr where
+  r ./ theta =
     if S.fold ((||) . isContra) False r'
-      then return $ S.singleton Contra
-      else return $ S.filter (not . isTauto) r'
+      then S.singleton Contra
+      else S.filter (not . isTauto) r'
+    where r' = S.fromList (map (./ theta) $ S.elems r)
 
-instance Subst Ineq where
-  subst _ Contra = return Contra
-  subst theta (da1 :#: da2) = (:#:) `liftM` subst theta da1 `ap` subst theta da2
+instance Subst Ineq CCsub Ineq where
+    Contra        ./ _     = Contra
+    (da1 :#: da2) ./ theta = (da1 ./ theta) :#: (da2 ./ theta)
 
-instance Subst Cexp where
-  subst theta (ConsC e1 e2) = ConsC `liftM` subst theta e1 `ap` subst theta e2
-  subst theta e@(VarC v) = return $ maybe e id $ M.lookup (CEvar' v) theta
-  subst theta (AtomC a) = AtomC `liftM` subst theta a
+instance Subst Cexp CCsub Cexp where
+    (ConsC e1 e2) ./ theta = ConsC (e1 ./ theta) (e2 ./ theta)
+    e@(VarC v)    ./ theta = maybe e id $ M.lookup (CEvar' v) theta
+    (AtomC a)     ./ theta = AtomC (a ./ theta)
 
-instance Subst CAexp where
-  subst theta (AtomCA z) = return $ AtomCA z
-  subst theta e@(VarCA cavar) =
-    case e' of
-      AtomC caexp -> return $ caexp
-      _ -> throwError . strMsg $ "Type error: Expected atom but got expression\
-                                 \ when looking up variable '" ++ show cavar ++ "'"
-    where e' = maybe (AtomC e) id $ M.lookup (CAvar' cavar) theta
+instance Subst CAexp CCsub CAexp where
+    (AtomCA z)      ./ _     = AtomCA z
+    e@(VarCA cavar) ./ theta =
+        case e' of
+          AtomC caexp -> caexp
+          _ -> error $ "Type error: Expected atom but got expression\
+                       \ when looking up variable '" ++ show cavar ++ "'"
+        where e' = maybe (AtomC e) id $ M.lookup (CAvar' cavar) theta
 
-instance Subst CRpair where
-  subst theta (cexpr, restr) = (,) `liftM` subst theta cexpr `ap` subst theta restr
+instance Subst CRpair CCsub CRpair where
+    (cexpr, restr) ./ theta = (cexpr ./ theta, restr ./ theta)
 
 
 isFullSubst :: CRpair -> CCsub -> Bool
@@ -128,11 +132,11 @@ isFullSubst (cc, r) theta = (all ground $ M.elems theta)
 -----------------
 -- Concretization
 -----------------
-toDval :: (Error e, MonadError e m) => Cexp -> m Dval
-toDval (ConsC e1 e2) = ConsD `liftM` toDval e1 `ap` toDval e2
-toDval (AtomC (AtomCA a)) = return . AtomD . DAtom $ a
-toDval _ = throwError . strMsg $ "Illegal attempt to convert non-ground\
-                                 \ C-Expression to Dval"
+toDval :: Cexp -> Dval
+toDval (ConsC e1 e2) = ConsD (toDval e1) (toDval e2)
+toDval (AtomC (AtomCA a)) = AtomD . DAtom $ a
+toDval _ = error $ "Illegal attempt to convert non-ground\
+                   \ C-Expression to Dval"
 
 concretize :: CRpair -> [Dval]
 concretize = undefined
@@ -141,10 +145,6 @@ concretize = undefined
 -- Contractions
 ---------------
 type Contr = Either CCsub Restr
-
-contract :: (Error e, MonadError e m) => Contr -> CRpair -> m CRpair
-contract (Left ccsub) cr = subst ccsub cr
-contract (Right kappa) (cc, r) = return (cc, S.union r kappa)
 
 k_id = Left M.empty
 k_contra = Right $ M.singleton Contra

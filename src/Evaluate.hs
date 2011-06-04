@@ -19,11 +19,22 @@ instance (Encode a) => Encode [a] where
 instance Encode Integer where
   encode = AtomD . DAtom . show
 
-evalProgramFile :: String -> [Dval] -> IO ()
+class Decode a where decode :: Dval -> a
+
+instance Decode Integer where
+  decode (AtomD (DAtom v)) = read v
+
+instance (Decode a) => Decode [a] where
+  decode (ConsD h t) = decode h : decode t
+  decode (AtomD (DAtom "nil")) = []
+  decode (AtomD (DAtom unk)) = error $ "Unknown symbol '" ++ unk
+
+evalProgramFile :: String -> [Dval] -> IO Dval
 evalProgramFile path dvs = do
   res <- parseProgramFile path
   case res of
-    Left e -> putStrLn $ "Parse error: " ++ show e
-    Right p -> case runIdentity . runErrorT $ interp p dvs of
-                 Left se -> putStrLn $ "Interpretation error: " ++ show se
-                 Right v -> putStrLn $ show v
+    Left e -> error $ show e
+    Right p -> return $ interp p dvs
+
+evalRev :: [Integer] -> IO [Integer]
+evalRev arg = decode `liftM` evalProgramFile "test.tsg" [encode arg]
