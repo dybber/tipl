@@ -1,4 +1,4 @@
-fun main = findrep ['1,['2,'nil]] ['1, ['6, ['2,['3, 'nil]]]]
+fun main s rr = findrep s rr
 
 fun findrep s rr = scan s rr 'nil
 
