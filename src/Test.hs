@@ -24,13 +24,13 @@ xa = Left . AtomC . VarCA . CAvar
 val = Right
 
 input :: [Either Cexp Cexp]
-input = [xe "in1", xe "in2"]
+input = [xe "in1"]
 
 cls :: Class
 cls = (map encode input, S.empty)
 
 test n = do
-  eprog <- parseProgramFile "../examples/findrep.tsg"
+  eprog <- parseProgramFile "../examples/crap.tsg"
   case eprog of
     Left err -> putStrLn $ show err
     Right prog -> let t = tab (ppt prog cls) cls
