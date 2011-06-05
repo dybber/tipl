@@ -1,0 +1,22 @@
+fun findrep s rr = scan s rr 'nil
+
+fun scan s rr out = 
+  case s of
+    [h, s] -> (case h of
+                  [wild, card] -> 'error-atom-expected
+                | .a             -> find .a s rr rr out)
+    out
+
+fun find a s r rr out =
+  case r of
+    [h, r] -> case h of
+                  [wild, card] -> 'error-atom-expected
+                | .b           -> case r of
+                                      [c, r]    -> if a == .b
+                                                   then scan s rr [c, out]
+                                                   else find a s r rr out
+                                    | .wildcard -> 'error-pair-expected
+  | scan s rr [a, out]
+
+
+    
