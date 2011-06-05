@@ -7,7 +7,7 @@ fun scan s rr out =
   case s of
     [h, s] -> (case h of
                   [wild, card] -> 'error-atom-expected
-                | .a             -> find .a s rr rr out)
+                | .a           -> find .a s rr rr out)
    | .wildcard -> out
 
 fun find .a s r rr out =

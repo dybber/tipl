@@ -20,10 +20,6 @@ dbg title vals = T.trace ("\nDEBUG (" ++ title ++ "):\n" ++ showVals vals)
   where showVals ((k, v):xs) = "\ \ \ \ " ++ k ++ " = " ++ v ++ "\n" ++ showVals xs
         showVals [] = ""
 
-instance Applicative (State s) where
-    pure = return
-    (<*>) = ap
-
 branch :: (Monad m) => [ListT m a] -> ListT m a
 branch = join . ListT . return
 
