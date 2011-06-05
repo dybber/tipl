@@ -9,6 +9,7 @@ module Language where
 import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Set as S
+import qualified Data.List as L
 
 import Domains
 
@@ -28,11 +29,19 @@ data Definition = DefD Fname [Pvar] Term
 data Term = CallT Fname [Pexp]
           | IfT Cond Term Term
           | PexpT Pexp
-  deriving (Show)
 
 data Cond = EqaK PAexp PAexp
           | ConsK Pexp PEvar PEvar PAvar
-  deriving (Show)
+
+instance Show Term where
+  show (CallT (F name) args) = "(call " ++ name ++ " "
+                               ++ (concat $ L.intersperse " " (map show args)) ++ ")"
+  show (IfT cond t1 t2) = "(if " ++ show cond ++ " " ++ show t1 ++ " " ++ show t2 ++ ")"
+  show (PexpT pexp) = show pexp
+
+instance Show Cond where
+  show (EqaK a1 a2) = "(eqa? " ++ show a1 ++ " " ++ show a2 ++ ")"
+  show (ConsK e xe1 xe2 xa1) = "(cons? " ++ show e ++ " " ++ show xe1 ++ " " ++ show xe2 ++ " " ++ show xa1 ++ ")"
 
 ----------------
 -- P-Expressions
@@ -40,24 +49,37 @@ data Cond = EqaK PAexp PAexp
 data Pexp = ConsP Pexp Pexp
           | VarP PEvar
           | AtomP PAexp
-  deriving (Show)
 
 data PAexp = AtomPA String
            | VarPA PAvar
-  deriving (Show)
 
 data Pvar = PEvar' PEvar
           | PAvar' PAvar
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 
+instance Show Pvar where
+  show (PEvar' pev) = show pev
+  show (PAvar' pav) = show pav
+
+instance Show Pexp where
+  show (ConsP e1 e2) = "(cons " ++ show e1 ++ " " ++ show e2 ++ ")"
+  show (VarP v) = show v
+  show (AtomP a) = show a
+
+instance Show PAexp where
+  show (AtomPA s) = "'" ++ s
+  show (VarPA v) = show v
 
 --------------------
 -- Typed P-Variables
 --------------------
 data PEvar = PEvar String
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
 data PAvar = PAvar String
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
+
+instance Show PEvar where show (PEvar v) = v
+instance Show PAvar where show (PAvar v) = "." ++ v
 
 ------------------
 -- Definitions map

@@ -12,6 +12,14 @@ import qualified Data.Set as S
 import Language
 import Domains
 
+import qualified Debug.Trace as T
+import qualified Data.List as L
+
+dbg :: String -> [(String, String)] -> b -> b
+dbg title vals = T.trace ("\nDEBUG (" ++ title ++ "):\n" ++ showVals vals)
+  where showVals ((k, v):xs) = "\ \ \ \ " ++ k ++ " = " ++ v ++ "\n" ++ showVals xs
+        showVals [] = ""
+
 instance Applicative (State s) where
     pure = return
     (<*>) = ap
@@ -58,7 +66,7 @@ ppt p cls = evalState (runPPT $ trace pm c0) initPPTstate
         pm = mkProgMap p
 
 trace :: ProgMap -> Conf -> PPT Trace
-trace pm conf@((PexpT _, _), _) = return $ Halt conf
+trace pm conf@((PexpT e, env), r) = return $ Halt conf
 
 trace pm conf@((CallT f es, env), r) = do
   (DefD _ vs t) <- case M.lookup f pm of
@@ -73,9 +81,10 @@ trace pm conf@((CallT f es, env), r) = do
 trace pm conf@((IfT cond t1 t2, env), r) = do
   brs <- runListT $ (do (s', k) <- traceCond env cond t1 t2
                         let conf'@(_, r') = (s', r) ./ k
-                        when (S.member Contra r') mzero
-                        subtrace <- lift $ trace pm conf'
-                        return (k, subtrace))
+                        if (S.member Contra r')
+                           then mzero
+                           else do subtrace <- lift $ trace pm conf'
+                                   return (k, subtrace))
   return $ Step conf brs
 
 traceCond :: PCenv -> Cond -> Term -> Term -> ListT PPT (PCstate, Contr)
@@ -110,15 +119,24 @@ traceCond env (ConsK e xe1 xe2 xa) t1 t2 =
                    $ PEvar' xe2 |-> x2'
                    $ env
           let k = Left $ M.singleton (CEvar' xc) (ConsC x1' x2')
-          return ((t1, env'), k)
+          return $ ((t1, env'), k)
         brFalse xc = do
           x1' <- AtomC . VarCA <$> lift getFresh
           let env' = PAvar' xa |-> x1' $ env
           let k = Left $ M.singleton (CEvar' xc) x1'
           return ((t2, env'), k)
 
+contrs :: Trace -> [Contr]
+contrs (Halt _) = []
+contrs (Step _ brs) = map fst brs ++ concatMap (contrs . snd) brs
+
+states :: Trace -> [(Integer, Conf)]
+states tr = states' [(0, tr)]
+    where states' ((n, Halt c):xs) = (n,c):(states' xs)
+          states' ((n, Step c brs):xs) = (n,c) : (states' $ xs ++ map (\(k,tr) -> (n+1,tr)) brs)
+
 tab :: Trace -> Class -> [(Class, Cexp)]
-tab trace cls = tab' [(cls, trace)]
+tab tr cls = tab' [(cls, tr)]
     where tab' [] = []
           tab' ((cls, Halt ((e, env), _)):xs) = (cls, e ./ env):(tab' xs)
           tab' ((cls, Step _ brs):xs) = tab' $ xs ++ map (\(k,tree) -> (cls ./ k, tree)) brs

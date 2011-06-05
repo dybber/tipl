@@ -183,3 +183,7 @@ instance Show CEvar where
 
 instance Show CAvar where
   show (CAvar v) = "." ++ v
+
+instance Show Cvar where
+  show (CEvar' e) = show e
+  show (CAvar' a) = show a
