@@ -1,3 +1,5 @@
+fun main = findrep ['1,['2,'nil]] ['1, ['6, ['2,['3, 'nil]]]]
+
 fun findrep s rr = scan s rr 'nil
 
 fun scan s rr out = 
@@ -5,18 +7,18 @@ fun scan s rr out =
     [h, s] -> (case h of
                   [wild, card] -> 'error-atom-expected
                 | .a             -> find .a s rr rr out)
-    out
+   | .wildcard -> out
 
-fun find a s r rr out =
+fun find .a s r rr out =
   case r of
     [h, r] -> case h of
                   [wild, card] -> 'error-atom-expected
                 | .b           -> case r of
-                                      [c, r]    -> if a == .b
+                                      [c, r]    -> if .a == .b
                                                    then scan s rr [c, out]
-                                                   else find a s r rr out
+                                                   else find .a s r rr out
                                     | .wildcard -> 'error-pair-expected
-  | scan s rr [a, out]
+  | .wildcard -> scan s rr [.a, out]
 
 
     
