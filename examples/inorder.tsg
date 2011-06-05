@@ -1,3 +1,4 @@
+-- example input   ['a, ['b, [['c,['d, 'e]], ['f,'g]]]]
 fun main t = inorder t
 
 fun inorder t = tree t 'nil 'nil
