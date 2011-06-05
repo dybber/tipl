@@ -2,7 +2,7 @@ fun main xs = rev xs 'nil
 
 fun rev xs ys =
     case xs of
-      <head, tail> -> rev tail <head, ys>
+      [head, tail] -> rev tail [head, ys]
     | .nil         -> if .nil == 'nil
                         then ys
                         else 'error-unkown-symbol
