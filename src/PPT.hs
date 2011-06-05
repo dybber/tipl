@@ -20,10 +20,6 @@ dbg title vals = T.trace ("\nDEBUG (" ++ title ++ "):\n" ++ showVals vals)
   where showVals ((k, v):xs) = "\ \ \ \ " ++ k ++ " = " ++ v ++ "\n" ++ showVals xs
         showVals [] = ""
 
-instance Applicative (State s) where
-    pure = return
-    (<*>) = ap
-
 branch :: (Monad m) => [ListT m a] -> ListT m a
 branch = join . ListT . return
 
@@ -81,10 +77,9 @@ trace pm conf@((CallT f es, env), r) = do
 trace pm conf@((IfT cond t1 t2, env), r) = do
   brs <- runListT $ (do (s', k) <- traceCond env cond t1 t2
                         let conf'@(_, r') = (s', r) ./ k
-                        if (S.member Contra r')
-                           then mzero
-                           else do subtrace <- lift $ trace pm conf'
-                                   return (k, subtrace))
+                        when (S.member Contra r') mzero
+                        subtrace <- lift $ trace pm conf'
+                        return (k, subtrace))
   return $ Step conf brs
 
 traceCond :: PCenv -> Cond -> Term -> Term -> ListT PPT (PCstate, Contr)
@@ -130,10 +125,10 @@ contrs :: Trace -> [Contr]
 contrs (Halt _) = []
 contrs (Step _ brs) = map fst brs ++ concatMap (contrs . snd) brs
 
-states :: Trace -> [(Integer, Conf)]
-states tr = states' [(0, tr)]
-    where states' ((n, Halt c):xs) = (n,c):(states' xs)
-          states' ((n, Step c brs):xs) = (n,c) : (states' $ xs ++ map (\(k,tr) -> (n+1,tr)) brs)
+states :: Trace -> [(Integer, Integer, Conf)]
+states tr = states' 0 [(0, tr)]
+    where states' n ((p, Halt c):xs) = (p,n,c):(states' (n+1) xs)
+          states' n ((p, Step c brs):xs) = (p,n,c) : (states' (n+1) $ xs ++ map (\(k,tr) -> (n,tr)) brs)
 
 tab :: Trace -> Class -> [(Class, Cexp)]
 tab tr cls = tab' [(cls, tr)]
