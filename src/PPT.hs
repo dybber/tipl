@@ -116,3 +116,9 @@ traceCond env (ConsK e xe1 xe2 xa) t1 t2 =
           let env' = PAvar' xa |-> x1' $ env
           let k = Left $ M.singleton (CEvar' xc) x1'
           return ((t2, env'), k)
+
+tab :: Trace -> Class -> [(Class, Cexp)]
+tab trace cls = tab' [(cls, trace)]
+    where tab' [] = []
+          tab' ((cls, Halt ((e, env), _)):xs) = (cls, e ./ env):(tab' xs)
+          tab' ((cls, Step _ brs):xs) = tab' $ xs ++ map (\(k,tree) -> (cls ./ k, tree)) brs

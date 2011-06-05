@@ -22,7 +22,7 @@ comma = P.comma lexer
 parens = P.parens lexer
 identifier = P.identifier lexer
 reserved = P.reserved lexer
-angles = P.angles lexer
+brackets = P.brackets lexer
 lexeme = P.lexeme lexer
 symbol = P.symbol lexer
 reservedOp = P.reservedOp lexer
@@ -60,7 +60,7 @@ term = parens term <|> call <|> if_ <|> case_ <|> (PexpT <$> pexp)
           reserved "case"
           e <- pexp
           reserved "of"
-          (a,b) <- angles ((,) <$> pevar <* comma <*> pevar)
+          (a,b) <- brackets ((,) <$> pevar <* comma <*> pevar)
           reservedOp "->"
           t1 <- term
           reservedOp "|"
@@ -71,7 +71,7 @@ term = parens term <|> call <|> if_ <|> case_ <|> (PexpT <$> pexp)
 
 pexp :: Parser Pexp
 pexp = consE <|> varE <|> (AtomP <$> paexp)
-  where consE = angles (ConsP <$> pexp <* comma <*> pexp)
+  where consE = brackets (ConsP <$> pexp <* comma <*> pexp)
         varE = VarP <$> pevar
 
 paexp :: Parser PAexp

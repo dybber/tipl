@@ -93,6 +93,10 @@ initConf (Prog defs) cls@(ds, r) = ((t_0, env_0), r)
     t_0 = CallT (F"main") (map VarP freshVars)
     env_0 = foldr ($) M.empty $ zipWith (M.insert) (map PEvar' freshVars) ds
 
+instance Subst Class Contr Class where
+  (ds, r) ./ (Left sub) = (map (./ sub) ds, r ./ sub)
+  (ds, r) ./ (Right r') = (ds, S.union r r')
+
 -------------------------
 -- Program C-substitution
 -------------------------
@@ -120,6 +124,9 @@ instance Subst PCstate CCsub PCstate where
 
 instance Subst PCenv CCsub PCenv where
     env ./ sub = M.map (./sub) env
+
+instance Subst Term PCenv Cexp where
+    (PexpT pexp) ./ env = pexp ./ env
 
 -------------------------------------------
 -- Full substitution on program expressions
