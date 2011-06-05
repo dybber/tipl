@@ -78,7 +78,14 @@ type Restr = Set Ineq
 ---------------
 data Ineq = CAexp :#: CAexp
           | Contra
-  deriving (Eq, Ord, Show)
+  deriving (Ord, Show)
+
+instance Eq Ineq where
+  (l1 :#: r1) == (l2 :#: r2) =  (l1 == l2) && (r1 == r2)
+                             || (l1 == r2) && (r1 == l2)
+  Contra == Contra = True
+  Contra == _      = False
+  _      == Contra = False
 
 isTauto ((AtomCA a1) :#: (AtomCA a2)) = a1 /= a2
 isTauto _ = False
