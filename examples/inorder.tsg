@@ -1,15 +1,15 @@
-fun main = inorder <'a, <'b, <<'c,<'d, 'e>>, <'f,'g>>>>
+fun main = inorder ['a, ['b, [['c,['d, 'e]], ['f,'g]]]]
 
 fun inorder t = tree t 'nil 'nil
 
 fun tree t rest out =
   case t of
-    <l, cr> -> tree l <cr, rest> out
-   | .leaf   -> center rest <.leaf, out>
+    [l, cr] -> tree l [cr, rest] out
+   | .leaf   -> center rest [.leaf, out]
 
 fun center rest out =
     case rest of
-      <cr, rest> -> (case cr of
-                        <center, r> -> tree r rest <center, out>
+      [cr, rest] -> (case cr of
+                        [center, r] -> tree r rest [center, out]
                       | .wildcard   -> 'error-tree-expected)
     | .wildcard  -> out
