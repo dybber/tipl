@@ -8,6 +8,7 @@ import Control.Arrow (first, second)
 
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Data.Maybe (fromMaybe)
 
 import Language
 import Domains
@@ -39,9 +40,9 @@ trace pm fr conf@((PexpT e, env), r) = Halt conf
 
 trace pm fr conf@((CallT f es, env), r) = Step conf [(k_id, trace pm fr conf')]
     where
-      (DefD _ vs t) = case M.lookup f pm of
-                        Nothing -> error $ "Undeclared function called: " ++ show f
-                        Just d -> d
+      (DefD _ vs t) = fromMaybe
+                         (error $ "Undeclared function called: " ++ show f)
+                         (M.lookup f pm)
       es' = map (./ env) es
       env' = M.fromList $ zip vs es'
       conf' = ((t, env'), r)
@@ -96,5 +97,5 @@ traceCond env (ConsK e xe1 xe2 xa) t1 t2 fr =
 tab :: Trace -> Class -> [(Class, Cexp)]
 tab tr cls = tab' [(cls, tr)]
     where tab' [] = []
-          tab' ((cls, Halt ((e, env), _)):xs) = (cls, e ./ env):(tab' xs)
-          tab' ((cls, Step _ brs):xs) = tab' $ xs ++ map (\(k,tree) -> (cls ./ k, tree)) brs
+          tab' ((cls, Halt ((e, env), _)):xs) = (cls, e ./ env) : tab' xs
+          tab' ((cls, Step _ brs):xs) = tab' $ xs ++ map (first (cls ./)) brs

@@ -19,12 +19,15 @@ instance (Encode a, Encode b) => Encode (Either a b) where
     encode (Left a) = encode a
     encode (Right b) = encode b
 
+instance Encode Char where
+    encode c = AtomC $ AtomCA $ c:[]
+
 xe = Left . VarC . CEvar
 xa = Left . AtomC . VarCA . CAvar
 val = Right
 
-input :: [Either Cexp Cexp]
-input = [xe "in1", xe "in2"]
+input :: [[Either Cexp Char]]
+input = [[xe "e1", xe "e2"], [xe "e1", xe "e3"]]
 
 cls :: Class
 cls = (map encode input, S.empty)
