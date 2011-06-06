@@ -13,8 +13,6 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
-import Control.Monad
-
 ----------------
 -- S-Expressions
 ----------------
@@ -87,9 +85,11 @@ instance Eq Ineq where
   Contra == _      = False
   _      == Contra = False
 
+isTauto :: Ineq -> Bool
 isTauto ((AtomCA a1) :#: (AtomCA a2)) = a1 /= a2
 isTauto _ = False
 
+isContra :: Ineq -> Bool
 isContra Contra = True
 isContra (da1 :#: da2) = da1 == da2
 
@@ -133,7 +133,7 @@ instance Subst CRpair CCsub CRpair where
 
 
 isFullSubst :: CRpair -> CCsub -> Bool
-isFullSubst (cc, r) theta = (all ground $ M.elems theta)
+isFullSubst (cc, _) theta = (all ground $ M.elems theta)
                             && var cc `S.isSubsetOf` (S.fromList $ M.keys theta)
 
 -----------------
@@ -153,8 +153,11 @@ concretize = undefined
 ---------------
 type Contr = Either CCsub Restr
 
+k_id :: Contr
 k_id = Left M.empty
-k_contra = Right $ M.singleton Contra
+
+k_contra :: Contr
+k_contra = Right $ S.singleton Contra
 
 ---------
 -- Splits
