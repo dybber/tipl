@@ -43,6 +43,17 @@ instance Show Cond where
   show (EqaK a1 a2) = "(eqa? " ++ show a1 ++ " " ++ show a2 ++ ")"
   show (ConsK e xe1 xe2 xa1) = "(cons? " ++ show e ++ " " ++ show xe1 ++ " " ++ show xe2 ++ " " ++ show xa1 ++ ")"
 
+
+----------------------------------------------
+-- Program C-Terms (terms with meta variables)
+----------------------------------------------
+data CTerm = CallC Fname [PCexp]
+           | IfC CCond CTerm CTerm
+           | PCexpC PCexp
+
+data CCond = EqaC PCAexp PCAexp
+           | ConsC PCexp PEvar PEvar PAvar
+
 ----------------
 -- P-Expressions
 ----------------
@@ -80,6 +91,18 @@ data PAvar = PAvar String
 
 instance Show PEvar where show (PEvar v) = v
 instance Show PAvar where show (PAvar v) = "." ++ v
+
+-----------------------------------------------------
+-- PC-Expressions (P-Expressions with meta variables)
+-----------------------------------------------------
+data PCexp = ConsPC PCexp PCexp
+           | PEvarPC PEvar
+           | CvarPC Cvar
+           | AtomPC PCAexp
+
+data PCAexp = AtomPCA String
+            | PAvarPCA PAvar
+            | CAvarPCA CAvar
 
 ------------------
 -- Definitions map
