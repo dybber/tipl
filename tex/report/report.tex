@@ -1,0 +1,172 @@
+\documentclass[10pt]{../sigplanconf}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{semantic}
+
+\conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.} 
+\title{To Trim a Perfect Process Tree}
+%\subtitle{Subtitle Text, if any}
+\authorinfo{Martin Dybdal}
+           {dybber@dybber.dk}
+           {DIKU, Department of Computer Science, University of Copenhagen}
+\authorinfo{Ulrik Rasmussen}
+           {dolle@diku.dk}
+           {DIKU, Department of Computer Science, University of Copenhagen}
+\authorpermission
+\copyrightdata{abstract}
+
+
+\mathlig{::=}{\quad ::=\quad}
+\mathlig{|->}{\mapsto}
+
+% For proofs, As frac but does not change the font size
+\newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
+\newcommand{\tagsc}[1]{\tag{\scshape #1}}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+  The Universal Resolving Algorithm\cite{abramov2000universal} is an
+  algorithm for inverse interpretation, based on the notion of a
+  perfect process tree for representing the possible traces of a
+  program. A process tree will often have an infinite representation,
+  meaning that inverse interpretation does not always terminate.
+
+  We investigate two methods for minimizing the size of a process tree
+  and representing it in finite form, respectively.
+
+  The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
+  used to identify programs that terminate for all inputs, and
+  size-change graphs resulting from this approach may be used to cut
+  branches in a process tree, minimizing its size. We are not aware of
+  any uses of SCTA in the field of inverse interpretation, but in this
+  report we will investigate whether this approach is feasible.
+
+  Generation of process trees by driving is a technique that
+  originates from the field of
+  supercompilation\cite{sorensen1998introduction}. A positive
+  supercompiler uses a technique called \emph{generalization} to
+  ensure that it will eventually arrive at a process tree with a
+  finite representation, which still represents all possible
+  configurations of the program. To our knowledge, the same technique
+  has not been applied to the field of inverse interpretation.
+\end{abstract}
+
+\keywords Inverse Interpretation, Size Change Termination Analysis,
+Generalization, Universal Resolving Algorithm.
+
+\newpage
+\begin{center}
+  \includegraphics[width=0.7\columnwidth]{../figures/pruning.pdf}
+\end{center}
+
+\begin{figure}\centering
+  \begin{align*}
+    \mathcal{Q} \ni q ::= & d^{+} \\
+    \mathcal{D} \ni d ::= &\texttt{fun \textit{\rmfamily fname} $x^{*}$ = $t$} \\
+    | \quad &\texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x^{*}$ = $t_1$} \\
+    & \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x^{*}$ = $t_2$} \\
+    \mathcal{T} \ni t ::= & \texttt{\textit{\rmfamily fname} $x^{*}$} \\
+    | \quad & \texttt{\textit{\rmfamily gname} $x^{*}$} \\
+    | \quad & \texttt{if $ea_1 = ea_2$ then $t_1$ else $t_2$} \\
+    \mathcal{E} \ni e ::= & \texttt{[$e_1$, $e_2$]} \\
+    | \quad & x \\
+    | \quad & ea \\
+    \mathcal{A} \ni ea ::= & \texttt{'}s \\
+    | \quad & \texttt{.}xa
+  \end{align*}
+  \caption{Syntax}
+\label{fig:syntax}
+\end{figure}
+
+
+\section{Operational Semantics}
+Judgement form: $\sigma |-_\Gamma t => v$
+
+
+\begin{figure*}\centering
+  
+  \begin{equation}
+    \nfrac{
+      ea_1/ \sigma = ea_2/\sigma \quad
+      \sigma |-_\Gamma t_1 => v_1
+    }{
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_1
+    } \tagsc{If-True}
+  \end{equation}
+
+\begin{equation}
+  \nfrac{
+    ea_1/ \sigma \neq ea_2/\sigma \quad
+    \sigma |-_\Gamma t_2 => v_2
+  }{
+    \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
+  } \tagsc{If-False}
+\end{equation}
+
+\begin{equation}
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{gname}) =
+      \begin{array}{l}
+        \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+      \end{array} \\
+      e_1/\sigma = \texttt{[$d_1$, $d_2$]} \\
+      \sigma\{x_1 |-> d_1, x_2 |-> d_2, x_3 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_1
+  } \tagsc{Call-G-Cons}
+\end{equation}
+
+\begin{equation}
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{gname}) =
+      \begin{array}{l}
+        \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+      \end{array} \\
+      e_1/\sigma = \texttt{'$s$} \\
+      \sigma\{xa |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
+  } \tagsc{Call-G-Atom}
+\end{equation}
+
+\begin{equation}
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{fname}) =
+        \texttt{fun \textit{\rmfamily fname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$}
+        \\
+      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
+  } \tagsc{Call-G-Atom}
+\end{equation}
+
+
+\caption{Operational Semantics for }
+\label{fig:semantics}
+\end{figure*}
+
+\bibliographystyle{abbrvnat}
+\bibliography{../bibliography}
+
+% \appendix
+% \section{Appendix Title}
+
+
+
+
+\end{document}
