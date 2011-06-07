@@ -1,6 +1,6 @@
 fun main xs = Rev xs 'nil
 
-fun Rev [h, xs] ys = Rev xs [h, xs]
+fun Rev [h, xs] ys = Rev xs [h, ys]
   | Rev .nil    ys  = if .nil == 'nil
                       then ys
                       else 'error-unknown-symbol
