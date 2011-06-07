@@ -32,8 +32,8 @@ cls = (map encode input, S.empty)
 test n = do
   eprog <- parseProgramFile "../examples/crap.tsg"
   case eprog of
-    Left err -> putStrLn $ show err
+    Left err -> print err
     Right prog -> let t = tab (ppt prog cls) cls
                       cs = contrs (ppt prog cls)
                       ss = states (ppt prog cls)
-                   in mapM_ (putStrLn . show) $ take n ss
+                   in mapM_ print $ take n ss
