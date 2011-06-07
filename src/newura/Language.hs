@@ -1,22 +1,34 @@
-{-# LANGUAGE EmptyDataDecls, GADTs #-}
+{-# LANGUAGE EmptyDataDecls
+  , GADTs
+  , MultiParamTypeClasses
+  , FunctionalDependencies
+  , StandaloneDeriving
+  #-}
 
 module Language where
 
 import Data.List (intersperse)
+import qualified Data.Map as M
 
 newtype Fname = F String
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 newtype Gname = G String
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
-data P -- Program domain
-data C -- Abstract value domain
-data D -- Ground value domain
+data FunName = Fname' Fname | Gname' Gname
+  deriving (Eq, Ord, Show)
+
+-- Uninhabited types for denoting different expression domains
+data P -- ^Program domain
+data C -- ^Abstract value domain
+data D -- ^Ground value domain
 
 -- Only expressions in the program domain and abstract value domain can contain variables
 class VarExp d
+class GroundExp d
 instance VarExp P
 instance VarExp C
+instance GroundExp D
 
 data Program = Prog [Definition]
                deriving Show
