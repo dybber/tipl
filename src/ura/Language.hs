@@ -211,3 +211,8 @@ instance Subst PAexp PDenv DAval where
 -------------------------
 
 class HomeoEmbed a where (<|) :: a -> a -> Bool
+
+instance HomeoEmbed PCAexp where
+   (AtomPCA s)  <| (AtomPCA s') = s == s'
+   (PAvarPCA _) <| (PAvarPCA _) = True
+   (CAvarPCA _) <| (CAvarPCA _) = True
