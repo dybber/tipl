@@ -19,5 +19,5 @@ fun Find2 [wild, card] r .a s rr out = 'error-atom-expected
 
 fun Find3 [c, r] .a .b s rr out = if .a == .b
                                   then Scan1 s rr [c, out] -- use c as replacement for .a and continue
-                                  else Find1 .a s r rr out
+                                  else Find1 r .a s rr out
   | Find3 .wildcard .a .b s rr out = 'error-pair-expected
