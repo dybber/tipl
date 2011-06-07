@@ -5,16 +5,20 @@ module Language where
 import Data.List (intersperse)
 
 newtype Fname = F String
+  deriving (Show, Eq)
 newtype Gname = G String
+  deriving (Show, Eq)
 
 data P
 data C
 
 data Program = Prog [Definition]
+               deriving Show
 
 data Definition = FFunD Fname [Var P] (Term P)
                 | GFunD Gname (XE P, XE P, [Var P], Term P)
                               (XA P, [Var P], Term P)
+                  deriving Show
 
 data Term d = FAppT Fname [Exp d]
             | GAppT Gname [Exp d]
@@ -56,6 +60,11 @@ instance Show (Exp d) where
 instance Show (Aexp d) where
   show (AtomA s) = "'" ++ s
   show (VarA xa) = show xa
+
+
+instance Show (Var d) where
+  show (XA' s) = show s
+  show (XE' s) = show s
 
 instance Show (XE d) where show (XE s) = s
 instance Show (XA d) where show (XA s) = '.':s
