@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE EmptyDataDecls, GADTs #-}
 
 module Language where
 
@@ -9,8 +9,14 @@ newtype Fname = F String
 newtype Gname = G String
   deriving (Show, Eq)
 
-data P
-data C
+data P -- Program domain
+data C -- Abstract value domain
+data D -- Ground value domain
+
+-- Only expressions in the program domain and abstract value domain can contain variables
+class VarExp d
+instance VarExp P
+instance VarExp C
 
 data Program = Prog [Definition]
                deriving Show
@@ -25,19 +31,20 @@ data Term d = FAppT Fname [Exp d]
             | IfT (Aexp d) (Aexp d) (Term d) (Term d)
             | ExpT (Exp d)
 
-data Exp d = ConsE (Exp d) (Exp d)
-           | VarE (XE d)
-           | Aexp' (Aexp d)
+data Exp d where
+    ConsE :: Exp d -> Exp d -> Exp d
+    VarE  :: (VarExp d) => XE d -> Exp d
+    Aexp' :: Aexp d -> Exp d
 
-data Aexp d = AtomA String
-            | VarA (XA d)
+data Aexp d where
+    AtomA :: String -> Aexp d
+    VarA :: (VarExp d) => XA d -> Aexp d
 
 data Var d = XA' (XA d)
            | XE' (XE d)
 
 newtype XA d = XA String
 newtype XE d = XE String
-
 
 -----------------
 -- Show instances

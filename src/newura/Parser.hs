@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports #-}
 module Parser(prog, parseProgramFile) where
 
 import Text.Parsec hiding (optional)
@@ -5,32 +6,49 @@ import Text.Parsec.Language
 import Text.Parsec.String
 import qualified Text.Parsec.Token as P
 
-import Data.Char (isLower, isUpper)
-
 import Control.Applicative hiding ((<|>), many)
 import Control.Monad
+import "mtl" Control.Monad.Identity
 
 import Language
 
+lDef :: LanguageDef st
 lDef = haskellStyle
         { P.reservedNames = ["if","then","else", "fun"]
         , P.reservedOpNames = ["=", "==", "|", "[", "]"]
         }
 
+lexer :: P.GenTokenParser String u Identity
 lexer = P.makeTokenParser lDef
 
+comma :: Parser String
 comma = P.comma lexer
+
+parens :: Parser a -> Parser a
 parens = P.parens lexer
+
+identifier :: Parser String
 identifier = P.identifier lexer
+
+reserved :: String -> Parser ()
 reserved = P.reserved lexer
+
+brackets :: Parser a -> Parser a
 brackets = P.brackets lexer
+
+lexeme :: Parser a -> Parser a
 lexeme = P.lexeme lexer
-symbol = P.symbol lexer
+
+reservedOp :: String -> Parser ()
 reservedOp = P.reservedOp lexer
-natural = P.natural lexer
+
+dot :: Parser String
 dot = P.dot lexer
+
+whiteSpace :: Parser ()
 whiteSpace = P.whiteSpace lexer
 
+symbols :: Parser String
 symbols = lexeme $ many1 (alphaNum <|> oneOf "_-")
 
 fname :: Parser Fname
@@ -38,14 +56,17 @@ fname = F <$> identifier
 
 gname :: Parser Gname
 gname = G <$> do c <- upper
-                 id <- identifier
-                 return (c:id)
+                 ident <- identifier
+                 return (c:ident)
 
-var :: Parser (Var P)
+var :: (VarExp d) => Parser (Var d)
 var =   (XA' <$> xavar)
     <|> (XE' <$> xevar)
 
+xavar :: Parser (XA d)
 xavar = XA <$ dot <*> identifier
+
+xevar :: Parser (XE d)
 xevar = XE <$> identifier
 
 prog :: Parser Program
@@ -78,7 +99,7 @@ gdef = do -- cons
           when (length vars1 /= length vars2) . fail $ "Length of argument lists for " ++ show name2 ++ "does not match"
           return $ GFunD name1 (x, xs, vars1, t1) (a, vars2, t2)
 
-term :: Parser (Term P)
+term :: (VarExp d) => Parser (Term d)
 term = parens term <|> callG <|> callF <|> if_ <|> (ExpT <$> pexp)
   where callF = try (FAppT <$> fname <*> many1 pexp)
         callG = try (GAppT <$> gname <*> many1 pexp)
@@ -86,12 +107,12 @@ term = parens term <|> callG <|> callF <|> if_ <|> (ExpT <$> pexp)
                   <* reserved "then" <*> term
                   <* reserved "else" <*> term
 
-pexp :: Parser (Exp P)
+pexp :: (VarExp d) => Parser (Exp d)
 pexp = consE <|> varE <|> (Aexp' <$> aexp)
   where consE = brackets (ConsE <$> pexp <* comma <*> pexp)
         varE = VarE <$> xevar
 
-aexp :: Parser (Aexp P)
+aexp :: (VarExp d) => Parser (Aexp d)
 aexp = atomA <|> varA
   where atomA = AtomA <$ char '\'' <*> symbols
         varA = VarA <$> xavar
