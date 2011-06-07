@@ -48,15 +48,22 @@ data Exp d where
     VarE  :: (VarExp d) => XE d -> Exp d
     Aexp' :: Aexp d -> Exp d
 
+deriving instance Eq (Exp d)
+
 data Aexp d where
     AtomA :: String -> Aexp d
     VarA :: (VarExp d) => XA d -> Aexp d
 
+deriving instance Eq (Aexp d)
+
 data Var d = XA' (XA d)
            | XE' (XE d)
+  deriving (Eq, Ord)
 
 newtype XA d = XA String
+  deriving (Eq, Ord)
 newtype XE d = XE String
+  deriving (Eq, Ord)
 
 -----------------
 -- Show instances
@@ -80,10 +87,27 @@ instance Show (Aexp d) where
   show (AtomA s) = "'" ++ s
   show (VarA xa) = show xa
 
-
 instance Show (Var d) where
   show (XA' s) = show s
   show (XE' s) = show s
 
 instance Show (XE d) where show (XE s) = s
 instance Show (XA d) where show (XA s) = '.':s
+
+---------------------
+-- Substitution class
+---------------------
+class Subst src env dst | src env -> dst where (./) :: src -> env -> dst
+
+----------------------------
+-- Convenience abbreviations
+----------------------------
+type ProgMap = M.Map FunName Definition
+
+-------------------
+-- Helper functions
+-------------------
+mkProgMap :: Program -> ProgMap
+mkProgMap (Prog defs) = M.fromList $ map mkPair defs
+  where mkPair def@(FFunD fn _ _) = (Fname' fn, def)
+        mkPair def@(GFunD fn _ _) = (Gname' fn, def)
