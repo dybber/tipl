@@ -43,6 +43,17 @@ instance Show Cond where
   show (EqaK a1 a2) = "(eqa? " ++ show a1 ++ " " ++ show a2 ++ ")"
   show (ConsK e xe1 xe2 xa1) = "(cons? " ++ show e ++ " " ++ show xe1 ++ " " ++ show xe2 ++ " " ++ show xa1 ++ ")"
 
+
+----------------------------------------------
+-- Program C-Terms (terms with meta variables)
+----------------------------------------------
+data CTerm = CallC Fname [PCexp]
+           | IfC CCond CTerm CTerm
+           | PCexpC PCexp
+
+data CCond = EqaCK PCAexp PCAexp
+           | ConsCK PCexp PEvar PEvar PAvar
+
 ----------------
 -- P-Expressions
 ----------------
@@ -81,6 +92,29 @@ data PAvar = PAvar String
 instance Show PEvar where show (PEvar v) = v
 instance Show PAvar where show (PAvar v) = "." ++ v
 
+-----------------------------------------------------
+-- PC-Expressions (P-Expressions with meta variables)
+-----------------------------------------------------
+data PCexp = ConsPC PCexp PCexp
+           | PEvarPC PEvar
+           | CvarPC Cvar
+           | AtomPC PCAexp
+
+data PCAexp = AtomPCA String
+            | PAvarPCA PAvar
+            | CAvarPCA CAvar
+
+instance Show PCexp where
+  show (ConsPC e1 e2) = "(cons " ++ show e1 ++ " " ++ show e2 ++ ")"
+  show (PEvarPC pevar) = show pevar
+  show (CvarPC cvar) = show cvar
+  show (AtomPC pcaexp) = show pcaexp
+
+instance Show PCAexp where
+  show (AtomPCA str) = "'" ++ str
+  show (PAvarPCA pavar) = show pavar
+  show (CAvarPCA cavar) = show cavar
+
 ------------------
 -- Definitions map
 ------------------
@@ -109,9 +143,9 @@ type Class = ([Cexp], Restr)
 type Conf = (PCstate, Restr)
 
 initConf :: Program -> Class -> Conf
-initConf (Prog defs) cls@(ds, r) = ((t_0, env_0), r)
+initConf (Prog _) (ds, r) = ((t_0, env_0), r)
   where
-    freshVars = take (length ds) $ [PEvar $ "x" ++ show n | n <- [1..]]
+    freshVars = take (length ds) $ [PEvar $ "x" ++ show n | n <- [(1 :: Integer)..]]
     t_0 = CallT (F"main") (map VarP freshVars)
     env_0 = foldr ($) M.empty $ zipWith (M.insert) (map PEvar' freshVars) ds
 
@@ -130,7 +164,7 @@ instance Subst Pexp PCenv Cexp where
     (./) (AtomP paexp) env = AtomC (paexp ./ env)
 
 instance Subst PAexp PCenv CAexp where
-    (./) (AtomPA syms) env = AtomCA syms
+    (./) (AtomPA syms) _ = AtomCA syms
     (./) (VarPA v) env =
       case M.lookup (PAvar' v) env of
         Nothing -> error $ "Unbound variable " ++ show v
@@ -149,6 +183,7 @@ instance Subst PCenv CCsub PCenv where
 
 instance Subst Term PCenv Cexp where
     (PexpT pexp) ./ env = pexp ./ env
+    _ ./ _ = error "attempt to substitute on non-ground term"
 
 -------------------------------------------
 -- Full substitution on program expressions
@@ -162,7 +197,7 @@ instance Subst Pexp PDenv Dval where
           Just e  -> e
 
 instance Subst PAexp PDenv DAval where
-    (AtomPA a) ./ env = DAtom a
+    (AtomPA a) ./ _ = DAtom a
     (VarPA pavar) ./ env =
         case M.lookup (PAvar' pavar) env of
           Nothing -> error $ "Unbound atom variable '" ++ show pavar ++ "'"
@@ -170,3 +205,9 @@ instance Subst PAexp PDenv DAval where
           Just _ -> error $ "Type Error: Expected atom but got\
                             \ complex value when looking\
                             \ up variable '" ++ show pavar ++ "'"
+
+-------------------------
+-- Homeomorphic embedding
+-------------------------
+
+class HomeoEmbed a where (<|) :: a -> a -> Bool
