@@ -1,0 +1,23 @@
+-- example input  ['1,['2,'nil]] ['1, ['6, ['2,['3, 'nil]]]]
+fun main s rr = findrep s rr
+
+fun findrep s rr = Scan1 s rr 'nil
+
+-- Goes through each element in s replacing according to rr
+fun Scan1 [h, s]    rr out = Scan2 h s rr out
+  | Scan1 .wildcard rr out = out
+
+fun Scan2 [wild, card] s rr out = 'error-atom-expected
+  | Scan2 .a           s rr out = Find1 rr .a s rr out
+
+-- Looks for a replacement of .a in the replacement list
+fun Find1 [h, r]    .a s rr out = Find2 h r .a s rr out
+  | Find1 .wildcard .a s rr out = Scan s rr [.a, out] -- end of replacement list, no replacement for .a
+
+fun Find2 [wild, card] r .a s rr out = 'error-atom-expected
+  | Find2 .b           r .a s rr out = Find3 r .a .b s rr out
+
+fun Find3 [c, r] .a .b s rr out = if .a == .b
+                                  then Scan s rr [c, out] -- use c as replacement for .a and continue
+                                  else Find1 .a s r rr out
+  | Find3 .wildcard .a .b s rr out = 'error-pair-expected
