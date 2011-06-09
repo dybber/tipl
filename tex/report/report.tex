@@ -3,7 +3,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
 \usepackage{graphicx}
 \usepackage{semantic}
 
@@ -17,19 +17,19 @@
            {dolle@diku.dk}
            {DIKU, Department of Computer Science, University of Copenhagen}
 \authorpermission
-\copyrightdata{abstract}
-
+\copyrightdata{draft}
 
 \mathlig{::=}{\quad ::=\quad}
 \mathlig{|->}{\mapsto}
+\mathlig{<|}{\trianglelefteq}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
+% Small-caps tags
 \newcommand{\tagsc}[1]{\tag{\scshape #1}}
 
 \begin{document}
 \maketitle
-
 
 \begin{abstract}
   The Universal Resolving Algorithm\cite{abramov2000universal} is an
@@ -60,35 +60,116 @@
 
 \keywords Inverse Interpretation, Size Change Termination Analysis,
 Generalization, Universal Resolving Algorithm.
+\begin{center}
+  \vspace{0.5cm}
+  \includegraphics[width=0.6\columnwidth]{../figures/pruning.pdf}
+  \vspace{0.5cm}
+\end{center}
 
 \newpage
-\begin{center}
-  \includegraphics[width=0.7\columnwidth]{../figures/pruning.pdf}
-\end{center}
+\section{Introduction}
+Conventionally, when we execute a program, we hand it some an input
+value and after some time it return with an output. In the field of
+\textit{inverse interpretation}, we seek to reverse this process, by
+handing the same program its output and then finding the possible
+inputs by ``backwards execution''. An \textit{inverse interpreter}
+thus receives a program and some output and calculates the set of
+possible inputs that could give rise to such output. 
+
+% example like 'match' in the 2002 ura-paper 
+
+If an inverse interpreter for a language is obtained, the
+Futamura-projections can be used to obtain a \textit{program
+  inverter}. This is much related to how a compiler can be obtained
+from an interpreter through the use of a partial evaluator. The exact
+way this is done, is shown in the paper ``The Principles of the
+Universal Resolving Algorithm'' \cite{abramov2000universal}.
+% Look through the part on Futamura projections again and correct the
+% above
+
+\subsection{Universal Resolving Algorithm}
+The \textit{Universal Resolving Algorithm} (URA) is an algorithm that uses
+techniques from supercompilation to obtain an inverse interpreter. It
+is universal in the sense, that for any given output to a program, it
+computes all its possible inputs.
+
+% More introductory stuff here
+
+
+\section{Subject Language}
+In this paper we will study a small syntactically typed functional
+language, that draws inspiration from both the language studied in
+\cite{sorensen1998introduction} and the S-Graph language as defined in
+the papers on the Universal Resolving Algorithm
+\cite{abramov2000universal, abramov2002universal,
+  abramov2002principles}.
+
+\subsection{Syntax}
+The syntax of our language is defined in Figure \ref{fig:bnf}. A
+program, $p \in \mathcal{P}$, is a sequence of function definitions. A
+function definition, $d \in \mathcal{D}$, can have two forms, either
+they are pattern matching and are called \textit{G-functions} or they
+are not and then called \textit{F-functions}. To distinguish, we use
+the convention of naming all \textit{G-functions} with an initial
+capital letter, and \textit{F-functions} with a lower case
+letter. Functions can take any number of arguments and for
+\textit{G-functions}, the first argument (and only that) must always
+be a pattern-match.
+
+Terms $t \in \mathcal{T}$ are either function calls (of the two
+types), a conditional or an expression. We have two categories of
+expressions. Atomic expressions, $ea \in \mathcal{A}$, can range over
+only \textit{atoms} (which are prefixed with an apostrophe, such as
+the symbol \texttt{'coffee}) and atomic variables $\texttt{.}xa \in
+\mathcal{A}$. This distinction between atomic variables
+($\texttt{.}xa$ and expressions variables $xe$ serves as a simply type
+system. A conditional can only compare atomic variables and the only
+comparison allowed is equality testing.
+
+Ordinary expressions, can in addition to being atomic expressions, use
+a \textit{cons}-operation to form pairs of values. These can be used
+to construct lists, trees or other data-structures, as well as be used
+for number-representation (Peano-numbers).
+
 
 \begin{figure}\centering
   \begin{align*}
-    \mathcal{Q} \ni q ::= & d^{+} \\
-    \mathcal{D} \ni d ::= &\texttt{fun \textit{\rmfamily fname} $x^{*}$ = $t$} \\
+    \mathcal{P} \ni p ::= & d^{+}\tag{Program}\\
+    \mathcal{D} \ni d ::= &\texttt{fun \textit{\rmfamily fname} $x^{*}$ = $t$}  \tag{Definition} \\
     | \quad &\texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x^{*}$ = $t_1$} \\
-    & \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x^{*}$ = $t_2$} \\
-    \mathcal{T} \ni t ::= & \texttt{\textit{\rmfamily fname} $x^{*}$} \\
+    & \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x^{*}$ = $t_2$}\\
+    \mathcal{T} \ni t ::= & \texttt{\textit{\rmfamily fname} $x^{*}$}  \tag{Term}\\
     | \quad & \texttt{\textit{\rmfamily gname} $x^{*}$} \\
     | \quad & \texttt{if $ea_1 = ea_2$ then $t_1$ else $t_2$} \\
-    \mathcal{E} \ni e ::= & \texttt{[$e_1$, $e_2$]} \\
+    | \quad & e \\
+    \mathcal{E} \ni e ::= & \texttt{[$e_1$, $e_2$]} \tag{Expressions}\\
     | \quad & x \\
     | \quad & ea \\
-    \mathcal{A} \ni ea ::= & \texttt{'}s \\
+    \mathcal{A} \ni ea ::= & \texttt{'}s \tag{Atomic expressions}\\
     | \quad & \texttt{.}xa
   \end{align*}
-  \caption{Syntax}
-\label{fig:syntax}
+  \caption{Syntax of *langname*.}
+\label{fig:bnf}
 \end{figure}
 
 
-\section{Operational Semantics}
-Judgement form: $\sigma |-_\Gamma t => v$
+\section{Value-classes}
+Values in our language can either be \textit{atoms} or pairs of
+values. Pairs are constructed using the \textit{cons}-operation as
+described above.
 
+\begin{figure}\centering
+  \begin{align*}
+    Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
+    AVal \ni va ::= & \texttt{'}s \\
+  \end{align*}
+  \caption{Syntax of *langname*.}
+\label{fig:bnf}
+\end{figure}
+
+
+\section{Semantics}
+Judgement form: $\sigma |-_\Gamma t => v$
 
 \begin{figure*}\centering
   
@@ -98,19 +179,18 @@ Judgement form: $\sigma |-_\Gamma t => v$
       \sigma |-_\Gamma t_1 => v_1
     }{
       \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_1
-    } \tagsc{If-True}
-  \end{equation}
-
-\begin{equation}
-  \nfrac{
-    ea_1/ \sigma \neq ea_2/\sigma \quad
-    \sigma |-_\Gamma t_2 => v_2
-  }{
-    \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
-  } \tagsc{If-False}
+    }
+    \qquad
+    \nfrac{
+      ea_1/ \sigma \neq ea_2/\sigma \quad
+      \sigma |-_\Gamma t_2 => v_2
+    }{
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
+    } \tagsc{If}
 \end{equation}
 
 \begin{equation}
+\hspace{-0.7cm}
   \nfrac{
     \begin{array}{c}
       \Gamma(\textit{gname}) =
@@ -123,10 +203,8 @@ Judgement form: $\sigma |-_\Gamma t => v$
     \end{array}
   }{
     \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_1
-  } \tagsc{Call-G-Cons}
-\end{equation}
-
-\begin{equation}
+  } 
+\qquad
   \nfrac{
     \begin{array}{c}
       \Gamma(\textit{gname}) =
@@ -139,7 +217,7 @@ Judgement form: $\sigma |-_\Gamma t => v$
     \end{array}
   }{
     \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
-  } \tagsc{Call-G-Atom}
+  } \tagsc{Call-G}
 \end{equation}
 
 \begin{equation}
@@ -152,13 +230,102 @@ Judgement form: $\sigma |-_\Gamma t => v$
     \end{array}
   }{
     \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
-  } \tagsc{Call-G-Atom}
+  } \tagsc{Call-F}
 \end{equation}
 
 
 \caption{Operational Semantics for }
 \label{fig:semantics}
 \end{figure*}
+
+\begin{figure*}\centering
+  \begin{equation}
+    \nfrac{
+    }{
+      \texttt{'}s_1 <| \texttt{'}s_2
+    } (s_1 = s_2) \tagsc{Atoms}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+    }{
+      \texttt{.}x_1 <| \texttt{.}x_2 
+    }
+    \qquad
+    \nfrac{
+    }{
+      x_1 <| x_2 
+    }
+    \qquad
+    \nfrac{
+    }{
+      \texttt{.}x_1 <| x_2 
+    } \tagsc{Variables}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+      e_1 <| e_1'\quad e_2 <| e_2'
+    }{
+      \texttt{[$e_1$, $e_2$]} <| \texttt{[$e_1'$, $e_2'$]}
+    }
+    \qquad
+    \nfrac{
+      e <| e_1
+    }{
+      e <| \texttt{[$e_1$, $e_2$]}
+    }
+    \qquad
+    \nfrac{
+      e <| e_2
+    }{
+      e <| \texttt{[$e_1$, $e_2$]}
+    }
+    \tagsc{Cons}
+  \end{equation}
+  
+  \begin{equation}
+    \nfrac{
+      ea_1 <| ea_1' \quad ea_2 <| ea_2' \quad t_1 <| t_1' \quad t_2 <| t_2'
+    }{
+      \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} <| \texttt{if $ea_1'$ = $ea_2'$ then $t_1'$ else $t_2'$}
+    } \tagsc{If-A}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+      \exists t' \in \{ea_1, ea_2, t_1, t_2\}. t <| t'
+    }{
+      t <| \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$}
+    } \tagsc{If-B}
+  \end{equation}
+
+\begin{equation}
+  \nfrac{
+    \forall i \in \{0, \ldots, n\}. e_i <| e_i'
+  }{
+    h(e_0, \ldots, e_n) <| h(e_0', \ldots, e_n')
+  } (h \in G \cup F)
+  \qquad
+  \nfrac{
+    \exists i \in \{0, \ldots, n\}. e <| e_i'
+  }{
+    e <| h(e_0', \ldots, e_n')
+  }
+ \tagsc{Call}
+\end{equation}
+
+\caption{Homeomorphic embedding }
+\label{fig:embedding}
+\end{figure*}
+
+\begin{figure*}
+  
+  \caption{Tracing}
+  \label{fig:tracing}
+\end{figure*}
+
+
 
 \bibliographystyle{abbrvnat}
 \bibliography{../bibliography}
