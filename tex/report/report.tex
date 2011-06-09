@@ -74,7 +74,33 @@ value and after some time it return with an output. In the field of
 handing the same program its output and then finding the possible
 inputs by ``backwards execution''. An \textit{inverse interpreter}
 thus receives a program and some output and calculates the set of
-possible inputs that could give rise to such output. 
+possible inputs that could give rise to such output. As an example, a
+program \texttt{substring} is a function that determines whether its
+first argument is a sublist of its second argument. When doing normal
+forward computation we will always return a single boolean result, as
+in these examples:
+
+\begin{center}
+\verb|sublist ['o, ['o, 'nil]] ['f, ['o, ['o 'nil]]]| $=>$ \texttt{'true}
+\end{center}
+
+\begin{center}
+\verb|sublist ['b, ['a, 'nil]] ['f, ['o, ['o 'nil]]]| $=>$ \texttt{'false}
+\end{center}
+
+When we want to do inverse computation with \textit{URA} of this
+function, we hand the \textit{URA} algorithm the output together with
+a specification of the structural form of the input.
+
+  \texttt{ura sublist ($X_1$, ['f, ['o, ['o 'nil]]]) 'true} \\ $=>$ 
+  \textit{all sublists of foo} \\
+
+  \texttt{ura sublist ($X_2$, ['f, ['o, ['o 'nil]]]) 'false} \\ $=>$
+  \textit{all lists not a part of foo}
+
+In this case $X_1$ and $X_2$ serve as this specification of the possible
+input and \verb|['f, ['o, ['o 'nil]]]|
+
 
 % example like 'match' in the 2002 ura-paper 
 
@@ -224,12 +250,12 @@ Judgement form: $\sigma |-_\Gamma t => v$
   \nfrac{
     \begin{array}{c}
       \Gamma(\textit{fname}) =
-        \texttt{fun \textit{\rmfamily fname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$}
+        \texttt{fun \textit{\rmfamily fname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t$}
         \\
-      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t => v
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v
   } \tagsc{Call-F}
 \end{equation}
 
