@@ -81,11 +81,9 @@ forward computation we will always return a single boolean result, as
 in these examples:
 \begin{align*}
 & \texttt{sublist ['o, ['o, 'nil]] ['f, ['o, ['o, 'nil]]]} \\
-& => \texttt{'true}
-\end{align*}
-\begin{align*}
+& \quad => \texttt{'true} \\
 & \texttt{sublist ['b, ['a, 'nil]] ['f, ['o, ['o, 'nil]]]} \\
-& => \texttt{'false}
+& \quad => \texttt{'false}
 \end{align*}
 When we want to use URA to do inverse computation on this function, we
 hand it the output together with a specification of the structural
@@ -100,24 +98,19 @@ specifies the output. Here the second argument is fixed to the list
 representing ``foo'', but we only specify some metavariable as the
 input for the first argument. A solution from URA will compute all
 possible substitutions of such metavariables that will give rise to
-the output \texttt{'true}.
+the output \texttt{'true}. It is in this sense that the algorithm is
+universal. An existential algorithm would just find a single input value.
 
-If an inverse interpreter for a language is obtained, the
-Futamura-projections can be used to obtain a \textit{program
-  inverter}. This is much related to how a compiler can be obtained
-from an interpreter through the use of a partial evaluator. The exact
-way this is done, is shown in the paper ``The Principles of the
-Universal Resolving Algorithm'' \cite{abramov2000universal}.
+The universal algorithm is made for inverse interpretation, but it can
+also be used for the problem of \textit{program inversion}. Using a
+self-interpreter and the Futamura-projections, the \textit{program
+  inverter} can be obtained from the program interpreter. This is much
+related to how a compiler can be obtained from an interpreter through
+the use of a partial evaluator. The exact way this is done, is shown
+in the paper ``The Principles of the Universal Resolving Algorithm''
+\cite{abramov2000universal}.
 % Look through the part on Futamura projections again and correct the
 % above
-
-\subsection{Universal Resolving Algorithm}
-The \textit{Universal Resolving Algorithm} (URA) is an algorithm that uses
-techniques from supercompilation to obtain an inverse interpreter. It
-is universal in the sense, that for any given output to a program, it
-computes all its possible inputs.
-
-% More introductory stuff here
 
 
 \section{Subject Language}
