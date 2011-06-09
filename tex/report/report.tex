@@ -22,6 +22,8 @@
 \mathlig{::=}{\quad ::=\quad}
 \mathlig{|->}{\mapsto}
 \mathlig{<|}{\trianglelefteq}
+\mathlig{<<}{\langle}
+\mathlig{>>}{\rangle}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
@@ -109,9 +111,6 @@ related to how a compiler can be obtained from an interpreter through
 the use of a partial evaluator. The exact way this is done, is shown
 in the paper ``The Principles of the Universal Resolving Algorithm''
 \cite{abramov2000universal}.
-% Look through the part on Futamura projections again and correct the
-% above
-
 
 \section{Subject Language}
 In this paper we will study a small syntactically typed functional
@@ -169,8 +168,9 @@ for number-representation (Peano-numbers).
 \label{fig:bnf}
 \end{figure}
 
+\subsection{Value-classes}
 
-\section{Value-classes}
+
 Values in our language can either be \textit{atoms} or pairs of
 values. Pairs are constructed using the \textit{cons}-operation as
 described above.
@@ -178,18 +178,21 @@ described above.
 \begin{figure}\centering
   \begin{align*}
     Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
-    AVal \ni va ::= & \texttt{'}s \\
+    AVal \ni va ::= & \texttt{'}s
   \end{align*}
-  \caption{Syntax of *langname*.}
+  \caption{Values in *langname*.}
 \label{fig:bnf}
 \end{figure}
 
-
-\section{Semantics}
-Judgement form: $\sigma |-_\Gamma t => v$
+\subsection{Semantics}
+Terms in *langname* are parameterized over an environment $\sigma$ and
+the set of function definitions $\Gamma$. The operational semantics is
+shown in Figure \ref{fig:semantics} using judgement form: $\sigma
+|-_\Gamma t => v$. A judgement of this form should be interpreted as:
+\textit{given environment $\sigma$ and function definitions $\Gamma$,
+  the term $t$ evaluates to the value $v$.}
 
 \begin{figure*}\centering
-  
   \begin{equation}
     \nfrac{
       ea_1/ \sigma = ea_2/\sigma \quad
@@ -254,6 +257,53 @@ Judgement form: $\sigma |-_\Gamma t => v$
 \caption{Operational Semantics for }
 \label{fig:semantics}
 \end{figure*}
+
+\section{Tracing the Perfect Process Tree}
+Here we will show how a perfect process tree of a program is generated
+by tracing its possible execution paths. Figure \ref{fig:tracing}
+shows the tracing semantics of *langname*.
+
+\begin{figure*}
+  \begin{equation}
+    \nfrac{
+      ea_1 = ea_2
+    }{
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa_{id}>>
+    } \tagsc{If-Eq}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+      ea_1 \neq ea_2 \quad \kappa = (ea_1\ \#\ ea_2)
+    }{
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa>>
+    } \tagsc{If-NotEq-A}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+      ea_1 \neq ea_2 \quad (ea_1\ \#\ ea_2) \not \in \textrm{Tautology} \quad \kappa = \textrm{mkBind}(ea_1, ea_2)
+    }{
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_2, \kappa>>
+    } \tagsc{If-NotEq-B}
+  \end{equation}
+  
+  \caption{Tracing}
+  \label{fig:tracing}
+\end{figure*}
+
+\section{Tabulation}
+Here we will explain how the perfect process tree can be used to
+generate a table of all possible input and output classes.
+
+\section{Generalization in the PPT}
+Here we will show how to create the perfect process tree in a way such
+that we obtain a finite representation. This is done using techniques
+from \textit{positive supercompilation} by defining a homeomorphic
+embedding of terms. The embedding is shown on Figure
+\ref{fig:embedding}.
+
+\section{Size-change termination analysis}
 
 \begin{figure*}\centering
   \begin{equation}
@@ -334,12 +384,6 @@ Judgement form: $\sigma |-_\Gamma t => v$
 
 \caption{Homeomorphic embedding }
 \label{fig:embedding}
-\end{figure*}
-
-\begin{figure*}
-  
-  \caption{Tracing}
-  \label{fig:tracing}
 \end{figure*}
 
 
