@@ -385,6 +385,18 @@ shows the tracing semantics of *langname*.
     }
   \end{equation}
 
+  \begin{equation}
+    \nfrac{
+      \begin{array}{c}
+        \Gamma(\textit{fname}) =
+          \texttt{fun \textit{\rmfamily fname} $x_1$ $\ldots$ $x_n$ = $t$} \\
+        \theta = \{ x_1 := e_1, ..., x_n := e_n \}
+      \end{array}
+    }{
+      |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ ... $e_n$} => <<t / \theta, \kappa_{id}>>
+    }
+  \end{equation}
+
   \caption{Tracing}
   \label{fig:tracing}
 \end{figure*}
