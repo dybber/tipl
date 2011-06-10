@@ -136,9 +136,9 @@ Terms $t \in \mathcal{T}$ are either function calls (of the two
 types), a conditional or an expression. We have two categories of
 expressions. Atomic expressions, $ea \in \mathcal{A}$, can range over
 only \textit{atoms} (which are prefixed with an apostrophe, such as
-the symbol \texttt{'coffee}) and atomic variables $\texttt{.}xa \in
+the symbol \texttt{'coffee}) and atomic variables $\texttt{.}x \in
 \mathcal{A}$. This distinction between atomic variables
-($\texttt{.}xa$ and expressions variables $xe$ serves as a simply type
+($\texttt{.}x$ and expressions variables $x$ serves as a simply type
 system. A conditional can only compare atomic variables and the only
 comparison allowed is equality testing.
 
@@ -153,19 +153,37 @@ for number-representation (Peano-numbers).
     \mathcal{P} \ni p ::= & d^{+}\tag{Program}\\
     \mathcal{D} \ni d ::= &\texttt{fun \textit{\rmfamily fname} $x^{*}$ = $t$}  \tag{Definition} \\
     | \quad &\texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x^{*}$ = $t_1$} \\
-    & \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x^{*}$ = $t_2$}\\
+    & \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{.7cm} $x^{*}$ = $t_2$}\\
     \mathcal{T} \ni t ::= & \texttt{\textit{\rmfamily fname} $x^{*}$}  \tag{Term}\\
     | \quad & \texttt{\textit{\rmfamily gname} $x^{*}$} \\
     | \quad & \texttt{if $ea_1 = ea_2$ then $t_1$ else $t_2$} \\
     | \quad & e \\
-    \mathcal{E} \ni e ::= & \texttt{[$e_1$, $e_2$]} \tag{Expressions}\\
+    \mathcal{E} \ni e ::= & \texttt{[$e_1$, $e_2$]} \tag{Expression}\\
     | \quad & x \\
     | \quad & ea \\
-    \mathcal{A} \ni ea ::= & \texttt{'}s \tag{Atomic expressions}\\
-    | \quad & \texttt{.}xa
+    \mathcal{A} \ni ea ::= & \texttt{'}s \tag{Atomic expression}\\
+    | \quad & \texttt{.}x
   \end{align*}
-  \caption{Syntax of *langname*.}
+  \caption{Syntax of TSG$'$.}
 \label{fig:bnf}
+\end{figure}
+
+\begin{figure}\centering
+  \begin{align*}
+    \widehat{\mathcal{T}} \ni \widehat{t}
+      ::=& \texttt{\textit{\rmfamily fname} $x^{*}$} \tag{C-Term} \\
+    | \quad & \texttt{\textit{\rmfamily gname} $x^{*}$} \\
+    | \quad & \texttt{if $\widehat{ea_1} = \widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} \\
+    | \quad & \widehat{e} \\
+    \widehat{\mathcal{E}} \ni \widehat{e} ::=& \texttt{[$\widehat{e_1}$, $\widehat{e_2}$]} \tag{C-Expression} \\
+    | \quad & \widehat{Xe} \\
+    | \quad & \widehat{ea} \\
+    \widehat{\mathcal{A}} \ni \widehat{ea} ::= & \texttt{'}s \tag{Atomic C-expression} \\
+    | \quad & \widehat{Xa}
+  \end{align*}
+
+\caption{Syntax of terms and expressions with meta variables}
+\label{fig:cbnf}
 \end{figure}
 
 \subsection{Value-classes}
@@ -180,12 +198,12 @@ described above.
     Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
     AVal \ni va ::= & \texttt{'}s
   \end{align*}
-  \caption{Values in *langname*.}
+  \caption{Values in TSG$'$.}
 \label{fig:bnf}
 \end{figure}
 
 \subsection{Semantics}
-Terms in *langname* are parameterized over an environment $\sigma$ and
+Terms in TSG$'$ are parameterized over an environment $\sigma$ and
 the set of function definitions $\Gamma$. The operational semantics is
 shown in Figure \ref{fig:semantics} using judgement form: $\sigma
 |-_\Gamma t => v$. A judgement of this form should be interpreted as:
@@ -215,11 +233,11 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
     \begin{array}{c}
       \Gamma(\textit{gname}) =
       \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
       e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
-      \sigma\{xe_\alpha |-> v_1, xe_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+      \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
     \end{array}
   }{
     \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
@@ -229,11 +247,11 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
     \begin{array}{c}
       \Gamma(\textit{gname}) =
       \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
       e_0/\sigma = \texttt{'}s \\
-      \sigma\{xa |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+      \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
     \end{array}
   }{
     \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
@@ -243,10 +261,10 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
   %     \Gamma(\textit{gname}) =
   %     \begin{array}{l}
   %       \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
-  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
   %     \end{array} \\
   %     e_1/\sigma = \texttt{'$s$} \\
-  %     \sigma\{xa |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+  %     \sigma\{\texttt{.}x |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
   %   \end{array}
   % }{
   %   \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
@@ -296,7 +314,7 @@ values.
 \subsection{Tracing the Perfect Process Tree}
 Here we will show how a perfect process tree of a program is generated
 by tracing its possible execution paths. Figure \ref{fig:tracing}
-shows the tracing semantics of *langname*.
+shows the tracing semantics of TSG$'$.
 
 \begin{figure*}
   \begin{equation}
@@ -326,11 +344,11 @@ shows the tracing semantics of *langname*.
   \begin{equation}
     \nfrac{
       \begin{array}{c}
-        e_0 = [e_\alpha, e_\beta] \quad \theta = \{ xe_\alpha := e_\alpha, xe_\beta := e_\beta, x_1 := e_1, ..., x_n := e_n \} \\
+        e_0 = [e_\alpha, e_\beta] \quad \theta = \{ x_\alpha := e_\alpha, x_\beta := e_\beta, x_1 := e_1, ..., x_n := e_n \} \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
-          \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
@@ -341,11 +359,11 @@ shows the tracing semantics of *langname*.
   \begin{equation}
     \nfrac{
       \begin{array}{c}
-        e_0 = ea \quad \theta = \{ .xa := ea, x_1' := e_1, ..., x_n' := e_n \} \\
+        e_0 = ea \quad \theta = \{ .x := ea, x_1' := e_1, ..., x_n' := e_n \} \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
-          \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
@@ -356,12 +374,12 @@ shows the tracing semantics of *langname*.
   \begin{equation}
     \nfrac{
       \begin{array}{c}
-        e_0 = Xe \quad \theta = \{ xe_\alpha := X_{e_1}^\diamond, xe_\beta := X_{e_2}^\diamond, x_1 := e_1, ..., x_n := e_n \} \\
+        e_0 = Xe \quad \theta = \{ x_\alpha := X_{e_1}^\diamond, x_\beta := X_{e_2}^\diamond, x_1 := e_1, ..., x_n := e_n \} \\
         \kappa = [Xe \mapsto [X_{e_1}^\diamond, X_{e_2}^\diamond]] \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
-          \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
@@ -372,12 +390,12 @@ shows the tracing semantics of *langname*.
   \begin{equation}
     \nfrac{
       \begin{array}{c}
-        e_0 = Xe \quad \theta = \{ .xa := X_{a}^\diamond, x_1' := e_1', ..., x_n' := e_n' \} \\
+        e_0 = Xe \quad \theta = \{ .x := X_{a}^\diamond, x_1' := e_1', ..., x_n' := e_n' \} \\
         \kappa = [Xe \mapsto Xa^\diamond] \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
-          \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
@@ -493,7 +511,7 @@ embedding of terms. The embedding is shown on Figure
  \tagsc{Call}
 \end{equation}
 
-\caption{Homeomorphic embedding }
+\caption{Homeomorphic embedding relation}
 \label{fig:embedding}
 \end{figure*}
 
