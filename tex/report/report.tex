@@ -215,36 +215,50 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
     \begin{array}{c}
       \Gamma(\textit{gname}) =
       \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+        \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
-      e_1/\sigma = \texttt{[$d_1$, $d_2$]} \\
-      \sigma\{x_1 |-> d_1, x_2 |-> d_2, x_3 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+      e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
+      \sigma\{xe_\alpha |-> v_1, xe_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_1
-  } 
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+  }
 \qquad
   \nfrac{
     \begin{array}{c}
       \Gamma(\textit{gname}) =
       \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+        \texttt{fun \textit{\rmfamily gname} [$xe_\alpha$, $xe_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
-      e_1/\sigma = \texttt{'$s$} \\
-      \sigma\{xa |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+      e_0/\sigma = \texttt{'}s \\
+      \sigma\{xa |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
-  } \tagsc{Call-G}
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+  }
+  % \nfrac{
+  %   \begin{array}{c}
+  %     \Gamma(\textit{gname}) =
+  %     \begin{array}{l}
+  %       \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
+  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$xa$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+  %     \end{array} \\
+  %     e_1/\sigma = \texttt{'$s$} \\
+  %     \sigma\{xa |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+  %   \end{array}
+  % }{
+  %   \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
+  % }
+  \tagsc{Call-G}
 \end{equation}
 
 \begin{equation}
   \nfrac{
     \begin{array}{c}
       \Gamma(\textit{fname}) =
-        \texttt{fun \textit{\rmfamily fname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t$}
+        \texttt{fun \textit{\rmfamily fname} $x_1$ $x_2$ $\ldots$ $x_n$ = $t$}
         \\
       \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t => v
     \end{array}
