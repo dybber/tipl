@@ -311,16 +311,16 @@ shows the tracing semantics of *langname*.
     \nfrac{
       ea_1 \neq ea_2 \quad \kappa = (ea_1\ \#\ ea_2)
     }{
-      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa>>
-    } \tagsc{If-NotEq-A}
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_2, \kappa>>
+    } \tagsc{If-NotEq}
   \end{equation}
 
   \begin{equation}
     \nfrac{
       ea_1 \neq ea_2 \quad (ea_1\ \#\ ea_2) \not \in \textrm{Tauto} \quad \kappa = [\textrm{mkBind}(ea_1, ea_2)]
     }{
-      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_2, \kappa>>
-    } \tagsc{If-NotEq-B}
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa>>
+    } \tagsc{If-BindVar}
   \end{equation}
 
   \begin{equation}
