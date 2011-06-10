@@ -3,12 +3,14 @@
   , MultiParamTypeClasses
   , FunctionalDependencies
   , StandaloneDeriving
+  , FlexibleInstances
   #-}
 
 module Language where
 
 import Data.List (intersperse)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 
 newtype Fname = F String
   deriving (Show, Eq, Ord)
@@ -98,6 +100,27 @@ instance Show (XA d) where show (XA s) = '.':s
 -- Substitution class
 ---------------------
 class Subst src env dst | src env -> dst where (./) :: src -> env -> dst
+
+instance Subst (Term t) (M.Map (Var t) (Exp d)) (Term d) where
+    (FAppT name es) ./ env = FAppT name $ map (./ env) es
+    (GAppT name es) ./ env = GAppT name $ map (./ env) es
+    (IfT aexp1 aexp2 t1 t2) ./ env = IfT (aexp1 ./ env) (aexp2 ./ env) (t1 ./ env) (t2 ./ env)
+    (ExpT e) ./ env = ExpT (e ./ env)
+
+instance Subst (Exp t) (M.Map (Var t) (Exp d)) (Exp d) where
+    (ConsE e1 e2) ./ env = ConsE (e1 ./ env) (e2 ./ env)
+    (VarE xe) ./ env = fromMaybe (error $ "unknown variable " ++ show xe)
+                                 (M.lookup (XE' xe) env)
+    (Aexp' aexp) ./ env = Aexp' $ aexp ./ env
+
+instance Subst (Aexp t) (M.Map (Var t) (Exp d)) (Aexp d) where
+    (AtomA a) ./ _ = AtomA a
+    (VarA xa) ./ env = case sub of
+                         Aexp' aexp' -> aexp'
+                         _ -> error $ "type error: " ++ show xa ++ " was bound to expresion"
+        where sub = fromMaybe
+                      (error $ "unknown variable " ++ show xa)
+                      (M.lookup (XA' xa) env)
 
 ----------------------------
 -- Convenience abbreviations

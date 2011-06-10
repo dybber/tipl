@@ -12,27 +12,6 @@ import Data.Maybe
 
 type Theta = M.Map (Var P) (Exp D)
 
-instance Subst (Term P) Theta (Term D) where
-  (FAppT name es) ./ env = FAppT name $ map (./env) es
-  (GAppT name es) ./ env = GAppT name $ map (./env) es
-  (IfT aexp1 aexp2 t1 t2) ./ env = IfT (aexp1 ./ env) (aexp2 ./ env) (t1 ./ env) (t2 ./ env)
-  (ExpT e) ./ env = ExpT (e ./ env)
-
-instance Subst (Exp P) Theta (Exp D) where
-  (ConsE e1 e2) ./ env = ConsE (e1./env) (e2./env)
-  (VarE xe) ./ env = fromMaybe (error $ "unknown variable " ++ show xe)
-                               (M.lookup (XE' xe) env)
-  (Aexp' aexp) ./ env = Aexp' $ aexp ./ env
-
-instance Subst (Aexp P) Theta (Aexp D) where
-  (AtomA a) ./ _ = AtomA a
-  (VarA xa) ./ env = case sub of
-                       Aexp' aexp' -> aexp'
-                       _ -> error $ "type error: " ++ show xa ++ " was bound to expresion"
-      where sub = fromMaybe
-                    (error $ "unknown variable " ++ show xa)
-                    (M.lookup (XA' xa) env)
-
 getDef :: ProgMap -> FunName -> Definition
 getDef pm fn = fromMaybe (error $ "unknown function " ++ show fn)
                          (M.lookup fn pm)
@@ -79,4 +58,5 @@ instance (Encode a) => Encode [a] where
     enc [] = Aexp' . AtomA $ "nil"
     enc (x:xs) = ConsE (enc x) (enc xs)
 
+test :: Integer -> IO (Term D)
 test n = interpProg "examples/findrep.tsg" [enc ['a','b'], enc ['a','c','b','x']] (Just n)
