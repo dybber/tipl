@@ -5,6 +5,7 @@
   , StandaloneDeriving
   , FlexibleInstances
   , FlexibleContexts
+  , TypeOperators
   #-}
 
 module Language where
@@ -68,11 +69,15 @@ newtype XA d = XA String
 newtype XE d = XE String
   deriving (Eq, Ord)
 
+isVar :: Exp d -> Bool
+isVar (VarE _) = True
+isVar (Aexp' (VarA _)) = True
+isVar _ = False
 
 ----------------------------
 -- Domain of let-bound terms
 ----------------------------
-data Let d = L [(Var d, Exp d)] (Term d)
+data Let d = Let [(Var d, Exp d)] (Term d)
 
 -----------------
 -- Show instances
@@ -156,6 +161,35 @@ substA (VarA xa) env f = case sub of
                       (f $ Aexp' $ VarA $ xa)
                       (M.lookup (XA' xa) env)
 
+---------------
+-- Contractions
+---------------
+data Ineq = Aexp C :#: Aexp C | Contra
+  deriving (Show)
+
+instance Eq Ineq where
+  (l1 :#: r1) == (l2 :#: r2) =  (l1 == l2) && (r1 == r2)
+                             || (l1 == r2) && (r1 == l2)
+  Contra == Contra = True
+  Contra == _      = False
+  _      == Contra = False
+
+isTauto :: Ineq -> Bool
+isTauto ((AtomA a1) :#: (AtomA a2)) = a1 /= a2
+isTauto _ = False
+
+isContra :: Ineq -> Bool
+isContra Contra = True
+isContra (da1 :#: da2) = da1 == da2
+
+type Contr = Either Ineq [Var C :-> Exp C]
+
+k_id :: Contr
+k_id = Right []
+
+k_contra :: Contr
+k_contra = Left Contra
+
 ----------------------------
 -- Convenience abbreviations
 ----------------------------
@@ -163,6 +197,8 @@ type ProgMap = M.Map FunName Definition
 
 (|->) :: a -> b -> (a, b)
 (|->) = (,)
+
+type a :-> b = (a, b)
 
 type Theta d t = M.Map (Var d) (Exp t)
 type Theta' d = Theta d d
