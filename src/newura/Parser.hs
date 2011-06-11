@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-module Parser(prog, parseProgramFile) where
+module Parser(prog, parseProgramFile, parseTerm, parseExp) where
 
 import Text.Parsec hiding (optional)
 import Text.Parsec.Language
@@ -119,3 +119,9 @@ aexp = atomA <|> varA
 
 parseProgramFile :: String -> IO (Either ParseError Program)
 parseProgramFile = parseFromFile (whiteSpace >> prog)
+
+parseTerm :: (VarExp d) => String -> Either ParseError (Term d)
+parseTerm = runParser term () "internal"
+
+parseExp :: (VarExp d) => String -> Either ParseError (Exp d)
+parseExp = runParser pexp () "internal"
