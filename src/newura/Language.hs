@@ -6,6 +6,7 @@
   , FlexibleInstances
   , FlexibleContexts
   , TypeOperators
+  , TypeSynonymInstances
   #-}
 
 module Language where
@@ -74,10 +75,18 @@ isVar (VarE _) = True
 isVar (Aexp' (VarA _)) = True
 isVar _ = False
 
+isExpTerm :: Term d -> Bool
+isExpTerm (ExpT _) = True
+isExpTerm _ = False
+
 ----------------------------
 -- Domain of let-bound terms
 ----------------------------
-data Let d = Let [(Var d, Exp d)] (Term d)
+data Let d = Let { letTheta :: [(Var d, Exp d)], letTerm :: Term d }
+
+isProper :: Let d -> Bool
+isProper (Let [] _) = False
+isProper _ = True
 
 -----------------
 -- Show instances
@@ -132,6 +141,13 @@ instance (Subst (x d) (M.Map (Var d) (Exp d)) (x d)) =>
 -- Full substitution on terms
 (.//) :: Term t -> M.Map (Var t) (Exp d) -> Term d
 t .// env = substT t env (\e -> error $ "Unbound variable: " ++ show e)
+
+-- Renaming of keys in a substitution
+instance Subst (Var d :-> Exp d) [Var d :-> Var d] (Var d :-> Exp d) where
+  (v, e) ./ vs = case [v'' | (v', v'') <- vs, v' == v] of
+                   [v''] -> (v'', e)
+                   [] -> (v, e)
+                   _ -> error "inconsistent map"
 
 
 -- Generalized substitution implementation on terms and expressions.
@@ -189,6 +205,12 @@ k_id = Right []
 
 k_contra :: Contr
 k_contra = Left Contra
+
+
+--------
+-- Class
+--------
+type Class = ([Exp C], [Ineq])
 
 ----------------------------
 -- Convenience abbreviations

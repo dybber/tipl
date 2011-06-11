@@ -1,10 +1,44 @@
-module MSG where
+{-# LANGUAGE
+    TypeOperators
+  , FlexibleInstances
+  , MultiParamTypeClasses
+  , TypeSynonymInstances
+  #-}
+module MSG (msg, isRenamingOf) where
 
 import Data.List (intersect)
 import Data.Maybe (listToMaybe)
 import Data.Monoid
 
 import Language
+
+isRenamingOf :: (VarExp d) => Term d -> Term d -> Bool
+isRenamingOf t1 t2 =
+    case msg initFreshVars t1 t2 of
+      Just (_, _, theta1, theta2) ->
+           (all (isVar . snd) theta1 && theta2 == [])
+        || (all (isVar . snd) theta2 && theta1 == [])
+      Nothing -> False
+
+-- Normalization, for easily detecting the case where one term is an instance of the other
+normalize :: (VarExp d)
+          => (FreshVars d, Term d, ThetaL' d, ThetaL' d)
+          -> (FreshVars d, Term d, ThetaL' d, ThetaL' d)
+normalize m@(fr, t, theta1, theta2) =
+    case getRenaming theta1 of
+      Just rn1 -> (fr, t ./ theta1, [], map (./rn1) theta2)
+      Nothing ->  case getRenaming theta2 of
+                    Just rn2 -> (fr, t./theta2, map (./rn2) theta1, [])
+                    Nothing -> m
+
+getRenaming :: (VarExp d) => [Var d :-> Exp d] -> Maybe [Var d :-> Var d]
+getRenaming [] = Just []
+getRenaming (x:xs) = do sub <- aux x
+                        subs <- getRenaming xs
+                        return $ sub:subs
+ where aux (XE' xe, VarE xe') = Just $ XE' xe |-> XE' xe'
+       aux (XA' xa, (Aexp' (VarA xa'))) = Just $ XA' xa |-> XA' xa'
+       aux _ = Nothing
 
 msg :: (VarExp d)
     => FreshVars d
@@ -13,7 +47,7 @@ msg :: (VarExp d)
     -> Maybe (FreshVars d, Term d, ThetaL' d, ThetaL' d)
 msg fr t1 t2 = do
   (fr', t, theta1, theta2) <- extractExprs fr t1 t2
-  return $ msg' (fr', t, theta1, theta2)
+  return $ normalize $ msg' (fr', t, theta1, theta2)
 
 extractExprs :: (VarExp d)
              => FreshVars d
