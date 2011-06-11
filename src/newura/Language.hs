@@ -68,6 +68,12 @@ newtype XA d = XA String
 newtype XE d = XE String
   deriving (Eq, Ord)
 
+
+----------------------------
+-- Domain of let-bound terms
+----------------------------
+data Let d = L [(Var d, Exp d)] (Term d)
+
 -----------------
 -- Show instances
 -----------------
