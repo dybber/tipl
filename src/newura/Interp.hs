@@ -25,11 +25,11 @@ interp p ds steps = interp' t0 steps
           interp' t s = interp' (step progMap t) (pred `fmap` s)
 
 step :: ProgMap -> Term D -> Term D
-step pm (FAppT fn es) = t ./ theta
+step pm (FAppT fn es) = t .// theta
   where (FFunD _ vs t) = getDef pm (Fname' fn)
         theta = M.fromList $ zip vs es
 
-step pm (GAppT fn (e:es)) = t' ./ theta
+step pm (GAppT fn (e:es)) = t' .// theta
   where (GFunD _ (xe1, xe2, vs1, t1)
                  (xa, vs2, t2)) = getDef pm (Gname' fn)
         theta = M.fromList ms

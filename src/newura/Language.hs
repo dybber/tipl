@@ -118,9 +118,9 @@ instance (Subst (x d) (M.Map (Var d) (Exp d)) (x d)) =>
     t ./ env = t ./ (M.fromList env)
 
 
--- Instance for full substitution on terms
-instance Subst (Term p) (M.Map (Var p) (Exp d)) (Term d) where
-    t ./ env = substT t env (\e -> error $ "Unbound variable: " ++ show e)
+-- Full substitution on terms
+(.//) :: Term t -> M.Map (Var t) (Exp d) -> Term d
+t .// env = substT t env (\e -> error $ "Unbound variable: " ++ show e)
 
 
 -- Generalized substitution implementation on terms and expressions.
