@@ -4,6 +4,7 @@
   , FunctionalDependencies
   , StandaloneDeriving
   , FlexibleInstances
+  , FlexibleContexts
   #-}
 
 module Language where
@@ -99,27 +100,54 @@ instance Show (XA d) where show (XA s) = '.':s
 ---------------------
 -- Substitution class
 ---------------------
-class Subst src env dst | src env -> dst where (./) :: src -> env -> dst
+class Subst src env dst | src env -> dst
+    where (./) :: src -> env -> dst
 
-instance Subst (Term t) (M.Map (Var t) (Exp d)) (Term d) where
-    (FAppT name es) ./ env = FAppT name $ map (./ env) es
-    (GAppT name es) ./ env = GAppT name $ map (./ env) es
-    (IfT aexp1 aexp2 t1 t2) ./ env = IfT (aexp1 ./ env) (aexp2 ./ env) (t1 ./ env) (t2 ./ env)
-    (ExpT e) ./ env = ExpT (e ./ env)
+-- Instances for partial substitution
+instance Subst (Term d) (M.Map (Var d) (Exp d)) (Term d) where
+    t ./ env = substT t env id
 
-instance Subst (Exp t) (M.Map (Var t) (Exp d)) (Exp d) where
-    (ConsE e1 e2) ./ env = ConsE (e1 ./ env) (e2 ./ env)
-    (VarE xe) ./ env = fromMaybe (error $ "unknown variable " ++ show xe)
-                                 (M.lookup (XE' xe) env)
-    (Aexp' aexp) ./ env = Aexp' $ aexp ./ env
+instance Subst (Exp d) (M.Map (Var d) (Exp d)) (Exp d) where
+    e ./ env = substE e env id
 
-instance Subst (Aexp t) (M.Map (Var t) (Exp d)) (Aexp d) where
-    (AtomA a) ./ _ = AtomA a
-    (VarA xa) ./ env = case sub of
-                         Aexp' aexp' -> aexp'
-                         _ -> error $ "type error: " ++ show xa ++ " was bound to expresion"
+instance Subst (Aexp d) (M.Map (Var d) (Exp d)) (Aexp d) where
+    ea ./ env = substA ea env id
+
+instance (Subst (x d) (M.Map (Var d) (Exp d)) (x d)) =>
+          Subst (x d) [(Var d, Exp d)] (x d) where
+    t ./ env = t ./ (M.fromList env)
+
+
+-- Instance for full substitution on terms
+instance Subst (Term p) (M.Map (Var p) (Exp d)) (Term d) where
+    t ./ env = substT t env (\e -> error $ "Unbound variable: " ++ show e)
+
+
+-- Generalized substitution implementation on terms and expressions.
+-- The 'f' parameter is used when the given substitution map is only partially
+-- defined on the domain of free variables.
+substT :: Term t -> M.Map (Var t) (Exp d) -> (Exp t -> Exp d) -> Term d
+substT (FAppT name es) env f = FAppT name $ map (\e -> substE e env f) es
+substT (GAppT name es) env f = GAppT name $ map (\e -> substE e env f) es
+substT (IfT aexp1 aexp2 t1 t2) env f = IfT (substA aexp1 env f)
+                                           (substA aexp2 env f)
+                                           (substT t1 env f)
+                                           (substT t2 env f)
+substT (ExpT e) env  f = ExpT (substE e env f)
+
+substE :: Exp t -> M.Map (Var t) (Exp d) -> (Exp t -> Exp d) -> Exp d
+substE (ConsE e1 e2) env f = ConsE (substE e1 env f) (substE e2 env f)
+substE (VarE xe) env f = fromMaybe (f $ VarE xe)
+                                   (M.lookup (XE' xe) env)
+substE (Aexp' aexp) env f = Aexp' $ substA aexp env f
+
+substA :: Aexp d1 -> M.Map (Var d1) (Exp d) -> (Exp d1 -> Exp d) -> Aexp d
+substA (AtomA a) _ _ = AtomA a
+substA (VarA xa) env f = case sub of
+                           Aexp' aexp' -> aexp'
+                           _ -> error $ "type error: "
         where sub = fromMaybe
-                      (error $ "unknown variable " ++ show xa)
+                      (f $ Aexp' $ VarA $ xa)
                       (M.lookup (XA' xa) env)
 
 ----------------------------
@@ -127,10 +155,44 @@ instance Subst (Aexp t) (M.Map (Var t) (Exp d)) (Aexp d) where
 ----------------------------
 type ProgMap = M.Map FunName Definition
 
--------------------
--- Helper functions
--------------------
+(|->) :: a -> b -> (a, b)
+(|->) = (,)
+
+type Theta d t = M.Map (Var d) (Exp t)
+type Theta' d = Theta d d
+type ThetaL d t = [(Var d, Exp t)]
+type ThetaL' d = ThetaL d d
+
+-----------------------------
+-- Helper functions and types
+-----------------------------
 mkProgMap :: Program -> ProgMap
 mkProgMap (Prog defs) = M.fromList $ map mkPair defs
   where mkPair def@(FFunD fn _ _) = (Fname' fn, def)
         mkPair def@(GFunD fn _ _) = (Gname' fn, def)
+
+type FreshVars d = ([XE d], [XA d])
+
+getFreshE :: FreshVars d -> (Var d, FreshVars d)
+getFreshE (xe:xes, xas) = (XE' xe, (xes, xas))
+getFreshE _ = error "ran out of fresh variables"
+
+getFreshA :: FreshVars d -> (Var d, FreshVars d)
+getFreshA (xes, xa:xas) = (XA' xa, (xes, xas))
+getFreshA _ = error "ran out of fresh variables"
+
+getFreshesE :: FreshVars d -> Int -> ([Var d], FreshVars d)
+getFreshesE (xes, xas) n = (map XE' $ take n xes, (drop n xes, xas))
+
+getFreshesA :: FreshVars d -> Int -> ([Var d], FreshVars d)
+getFreshesA (xes, xas) n = (map XA' $ take n xas, (xes, drop n xas))
+
+initFreshVars :: (VarExp d) => FreshVars d
+initFreshVars = ( [XE $ "$Xe" ++ show n | n <- ixs1]
+                , [XA $ "$Xa" ++ show n | n <- ixs2])
+    where ixs1 = [1..] :: [Integer]
+          ixs2 = [1..] :: [Integer]
+
+varExp :: (VarExp d) => Var d -> Exp d
+varExp (XE' xe) = VarE xe
+varExp (XA' xa) = Aexp' . VarA $ xa
