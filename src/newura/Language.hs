@@ -47,6 +47,7 @@ data Term d = FAppT Fname [Exp d]
             | GAppT Gname [Exp d]
             | IfT (Aexp d) (Aexp d) (Term d) (Term d)
             | ExpT (Exp d)
+  deriving (Eq)
 
 data Exp d where
     ConsE :: Exp d -> Exp d -> Exp d
@@ -88,6 +89,13 @@ isProper :: Let d -> Bool
 isProper (Let [] _) = False
 isProper _ = True
 
+----------------
+-- Configuration
+----------------
+type Conf = Let C
+--alternative definition:
+--type Conf=(Let C, [Ineq])
+
 -----------------
 -- Show instances
 -----------------
@@ -117,6 +125,13 @@ instance Show (Var d) where
 instance Show (XE d) where show (XE s) = s
 instance Show (XA d) where show (XA s) = '.':s
 
+instance Show (Let d) where
+  show (Let [] t) = show t
+  show (Let th t) = "let " ++ showTh ++ " in " ++ show t
+    where
+      showTh = concat $ intersperse "; " $ map showb th
+      showb (v,e) = show v ++ " = " ++ show e
+
 ---------------------
 -- Substitution class
 ---------------------
@@ -133,10 +148,12 @@ instance Subst (Exp d) (M.Map (Var d) (Exp d)) (Exp d) where
 instance Subst (Aexp d) (M.Map (Var d) (Exp d)) (Aexp d) where
     ea ./ env = substA ea env id
 
-instance (Subst (x d) (M.Map (Var d) (Exp d)) (x d)) =>
-          Subst (x d) [(Var d, Exp d)] (x d) where
-    t ./ env = t ./ (M.fromList env)
+instance Subst (Term P) (M.Map (Var P) (Exp C)) (Term C) where
+    t ./ env = substT t env (\v -> error $ "unbound variable: " ++ show v)
 
+instance (Subst (x d) (M.Map (Var d) (Exp t)) (x t)) =>
+          Subst (x d) [(Var d, Exp t)] (x t) where
+    t ./ env = t ./ (M.fromList env)
 
 -- Full substitution on terms
 (.//) :: Term t -> M.Map (Var t) (Exp d) -> Term d
@@ -252,8 +269,8 @@ getFreshesA :: FreshVars d -> Int -> ([Var d], FreshVars d)
 getFreshesA (xes, xas) n = (map XA' $ take n xas, (xes, drop n xas))
 
 initFreshVars :: (VarExp d) => FreshVars d
-initFreshVars = ( [XE $ "$Xe" ++ show n | n <- ixs1]
-                , [XA $ "$Xa" ++ show n | n <- ixs2])
+initFreshVars = ( [XE $ "Xe" ++ show n | n <- ixs1]
+                , [XA $ "Xa" ++ show n | n <- ixs2])
     where ixs1 = [1..] :: [Integer]
           ixs2 = [1..] :: [Integer]
 

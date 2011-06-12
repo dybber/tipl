@@ -6,14 +6,21 @@
   #-}
 module Tree where
 
-import Control.Monad
-import Data.List(tails)
+import Data.List(tails, intersperse)
 
 import Language
 import MSG
 
-data Tree = Branch { treeTerm :: Let C, treeBranches :: [(Contr, Tree)] }
+data Tree = Branch { treeConf :: Conf, treeBranches :: [(Contr, Tree)] }
 
+instance Show Tree where
+  show t = show' "" t
+    where show' ind (Branch c brs) =
+              show c ++ "\n" ++ (concat $ map (showBr (' ':' ':' ':ind)) brs)
+          showBr ind (Left ineq, tr) = ind ++ (show ineq) ++ " : " ++ (show' ind tr)
+          showBr ind (Right subs, tr) = ind ++ (showS subs) ++ " : " ++ (show' ind tr)
+          showS [] = "Ø"
+          showS subs = concat $ intersperse ", " $ map (\(a,b) -> show a ++ " |-> " ++ show b) subs
 type Node = [Int]
 
 leaf :: Tree -> [Node]
@@ -36,27 +43,25 @@ anc n = map reverse . drop 1 . tails . reverse $ n
 
 sub :: Tree -> Node -> Tree
 sub br@(Branch _ _) [] = br
-sub (Branch _ brs) (ix:ixs) = sub (snd (brs !! ix)) ixs
+sub (Branch _ brs) (ix:ixs) = sub (snd (brs !! (ix-1))) ixs
 
 isProcessed :: Tree -> Node -> Bool
-isProcessed tr n = theta == [] && isExpTerm t
-                || any (isRenamingOf t) ancTerms
+isProcessed tr n = theta == [] && (isExpTerm t || any (isRenamingOf t) ancTerms)
   where Branch (Let theta t) _ = sub tr n
-        ancTerms = map letTerm $ filter (not . isProper) $ map (treeTerm . sub tr) $ anc n
+        ancTerms = map letTerm $ filter (not . isProper) $ map (treeConf . sub tr) $ anc n
 
 isProperN :: Tree -> Node -> Bool
-isProperN t n = isProper . treeTerm $ sub t n
+isProperN t n = isProper . treeConf $ sub t n
 
-abstract :: FreshVars C -> Tree -> Node -> Node -> Maybe (FreshVars C, Tree)
-abstract fr t a b = do
+abstract :: FreshVars C -> Tree -> Node -> Node -> (FreshVars C, Tree)
+abstract fr t a b =
   let Branch (Let [] t1) _ = sub t a
-  let Branch (Let [] t2) _ = sub t b
-  (fr', t_g, theta, _) <- msg fr t1 t2
-  when (all (isVar . snd) theta) mzero
-  return (fr', Branch (Let theta t_g) [])
+      Branch (Let [] t2) _ = sub t b
+      Just (fr', t_g, theta, _) = msg fr t1 t2
+   in (fr', t ./ (a |-> Branch (Let theta t_g) []))
 
 (?) :: Tree -> Node -> Let C
-t ? n = treeTerm $ sub t n
+t ? n = treeConf $ sub t n
 
 (??) :: Tree -> Node -> Term C
-t ?? n = let (Let _ term) = treeTerm $ sub t n in term
+t ?? n = let (Let _ term) = treeConf $ sub t n in term

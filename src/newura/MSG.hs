@@ -4,13 +4,23 @@
   , MultiParamTypeClasses
   , TypeSynonymInstances
   #-}
-module MSG (msg, isRenamingOf) where
+module MSG (msg, isRenamingOf, (<<=), (<->)) where
 
 import Data.List (intersect)
 import Data.Maybe (listToMaybe)
 import Data.Monoid
 
 import Language
+
+(<<=) :: (VarExp d) => Term d -> Term d -> Bool
+t1 <<= t2 = case msg initFreshVars t1 t2 of
+              Nothing -> False
+              Just (_, t', _, _) -> t1 == t'
+
+(<->) :: (VarExp d) => Term d -> Term d -> Bool
+t1 <-> t2 = case msg initFreshVars t1 t2 of
+              Nothing -> True
+              Just _ -> False
 
 isRenamingOf :: (VarExp d) => Term d -> Term d -> Bool
 isRenamingOf t1 t2 =
