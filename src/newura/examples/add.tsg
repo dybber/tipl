@@ -1,0 +1,4 @@
+fun main x y = Add x y
+
+fun Add [s, ss] y = Add ss ['S, y]
+  | Add .z y = if .z == 'Z then y else 'error-unknown-symbol

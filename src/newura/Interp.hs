@@ -57,6 +57,3 @@ instance Encode Char where enc c = Aexp' . AtomA $ [c]
 instance (Encode a) => Encode [a] where
     enc [] = Aexp' . AtomA $ "nil"
     enc (x:xs) = ConsE (enc x) (enc xs)
-
-test :: Integer -> IO (Term D)
-test n = interpProg "examples/findrep.tsg" [enc ['a','b'], enc ['a','c','b','x']] (Just n)
