@@ -1,0 +1,11 @@
+-- example input   ['a, ['b, [['c,['d, 'e]], ['f,'g]]]]
+fun main t = Tree t 'nil 'nil
+
+fun Tree [l, cr] rest out = Tree l [cr, rest] out
+  | Tree .leaf   rest out = Center rest [.leaf, out]
+
+fun Center [cr, rest] out = CenterX cr rest out
+  | Center .wildcard  out = out
+
+fun CenterX [center, r] rest out = Tree r rest [center, out]
+  | CenterX .wildcard   rest out = 'error-tree-expected
