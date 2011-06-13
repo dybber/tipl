@@ -43,13 +43,6 @@
   We investigate two methods for minimizing the size of a process tree
   and representing it in finite form, respectively.
 
-  The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
-  used to identify programs that terminate for all inputs, and
-  size-change graphs resulting from this approach may be used to cut
-  branches in a process tree, minimizing its size. We are not aware of
-  any uses of SCTA in the field of inverse interpretation, but in this
-  report we will investigate whether this approach is feasible.
-
   Generation of process trees by driving is a technique that
   originates from the field of
   supercompilation\cite{sorensen1998introduction}. A positive
@@ -60,8 +53,8 @@
   has not been applied to the field of inverse interpretation.
 \end{abstract}
 
-\keywords Inverse Interpretation, Size Change Termination Analysis,
-Generalization, Universal Resolving Algorithm.
+\keywords Inverse Interpretation, Generalization, Universal Resolving
+Algorithm.
 \begin{center}
   \vspace{0.5cm}
   \includegraphics[width=0.6\columnwidth]{../figures/pruning.pdf}
@@ -168,6 +161,32 @@ for number-representation (Peano-numbers).
 \label{fig:bnf}
 \end{figure}
 
+\subsection{Value-classes}
+Values in our language can either be \textit{atoms} or pairs of
+values. Pairs are constructed using the \textit{cons}-operation as
+described above. A value is \textit{ground} if it does not contain any
+variables. We denote ground values as by $va \in AVal$ and $v \in Val$
+depending on whether they only contain atoms.
+
+\begin{figure}\centering
+  \begin{align*}
+    Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
+    AVal \ni va ::= & \texttt{'}s
+  \end{align*}
+  \caption{Values in TSG$'$.}
+\label{fig:bnf}
+\end{figure}
+
+When we do inverse-computation, the set of resulting input-values can
+often be described by dividing them into classes of values that obeys
+a given constraint. We call such generalized values for
+\textit{C-expressions} and represent them by extending our value
+domain with meta-variables. The domain of C-expressions is shown in
+Figure \ref{fig:cbnf} as $\mathcal{\widehat{A}}$ and
+$\mathcal{\widehat{E}}$. In addition we will need terms containing
+such meta variables, these are denoted $\widehat{t} \in
+\widehat{\mathcal{T}}$.
+
 \begin{figure}\centering
   \begin{align*}
     \widehat{\mathcal{T}} \ni \widehat{t}
@@ -186,21 +205,6 @@ for number-representation (Peano-numbers).
 \label{fig:cbnf}
 \end{figure}
 
-\subsection{Value-classes}
-
-
-Values in our language can either be \textit{atoms} or pairs of
-values. Pairs are constructed using the \textit{cons}-operation as
-described above.
-
-\begin{figure}\centering
-  \begin{align*}
-    Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
-    AVal \ni va ::= & \texttt{'}s
-  \end{align*}
-  \caption{Values in TSG$'$.}
-\label{fig:bnf}
-\end{figure}
 
 \subsection{Semantics}
 Terms in TSG$'$ are parameterized over an environment $\sigma$ and
@@ -286,7 +290,7 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
 \end{equation}
 
 
-\caption{Operational Semantics for }
+\caption{Operational Semantics for TSG'}
 \label{fig:semantics}
 \end{figure*}
 
@@ -514,6 +518,15 @@ embedding of terms. The embedding is shown on Figure
 \caption{Homeomorphic embedding relation}
 \label{fig:embedding}
 \end{figure*}
+
+
+\section{Future Work}
+  The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
+  used to identify programs that terminate for all inputs, and
+  size-change graphs resulting from this approach may be used to cut
+  branches in a process tree, minimizing its size. We are not aware of
+  any uses of SCTA in the field of inverse interpretation, but in this
+  report we will investigate whether this approach is feasible.
 
 
 
