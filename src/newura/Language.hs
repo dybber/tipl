@@ -151,6 +151,9 @@ instance Subst (Aexp d) (M.Map (Var d) (Exp d)) (Aexp d) where
 instance Subst (Term P) (M.Map (Var P) (Exp C)) (Term C) where
     t ./ env = substT t env (\v -> error $ "unbound variable: " ++ show v)
 
+instance Subst (Exp P) (M.Map (Var P) (Exp D)) (Exp D) where
+    e ./ env = substE e env (\v -> error $ "unbound variable: " ++ show v)
+
 instance (Subst (x d) (M.Map (Var d) (Exp t)) (x t)) =>
           Subst (x d) [(Var d, Exp t)] (x t) where
     t ./ env = t ./ (M.fromList env)

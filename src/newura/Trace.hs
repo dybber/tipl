@@ -1,4 +1,4 @@
-module Trace where
+module Trace(ppt) where
 
 import Language
 import Tree
