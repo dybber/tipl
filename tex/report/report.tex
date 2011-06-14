@@ -386,6 +386,24 @@ set of contractions is checked for contradictions.
 \end{figure*}
 
 \section{Supercompilation}
+In supercompilation, one wishes to obtain more efficient forms of a
+program by observing their execution and generating a new program with
+similar functionality. For instance two functions that operate
+independently, might be more efficiently described by composing them
+into one program (program composition). Another example is program
+specialization, where parts of the input is known is advance, and
+supercompilation can be a way of obtaining a more efficient version of
+the program when this information is taken into account.
+
+Supercompilation, like the universal resolving algorithm, follows the
+execution of a program with variable as input. The universal resolving
+algorithm has been inspired by these techniques from
+supercompilation. In supercompilation, the term \textit{driving} is
+used to describe the act of finding a process tree.
+
+\subsection{Generalization}
+A process tree found in super compilation should be finite, as we want
+to output a finite output in the end.
 
 \section{Generalization in the PPT}
 Here we will show how to create the perfect process tree in a way such
