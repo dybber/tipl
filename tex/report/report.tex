@@ -24,6 +24,7 @@
 \mathlig{<|}{\trianglelefteq}
 \mathlig{<<}{\langle}
 \mathlig{>>}{\rangle}
+\newcommand{\dom}{\ensuremath{{\rm dom}}}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
@@ -158,7 +159,7 @@ for number-representation (Peano-numbers).
     \mathcal{A} \ni ea ::= & \texttt{'}s \tag{Atomic expression}\\
     | \quad & \texttt{.}x
   \end{align*}
-  \caption{Syntax of TSG$'$.}
+  \caption{Syntax of TRFL.}
 \label{fig:bnf}
 \end{figure}
 
@@ -174,7 +175,7 @@ depending on whether they only contain atoms.
     Val \ni v ::= & \texttt{[$v_1$, $v_2$]}\ |\ va\\
     AVal \ni va ::= & \texttt{'}s
   \end{align*}
-  \caption{Values in TSG$'$.}
+  \caption{Values in TRFL.}
 \label{fig:bnf}
 \end{figure}
 
@@ -214,13 +215,12 @@ to specify the constraints on the meta-variables occurring in the
 \end{figure}
 
 \subsection{Semantics}
-Terms in TSG$'$ are parameterized over an environment $\sigma$ and
+Terms in TRFL are parameterized over an environment $\sigma$ and
 the set of function definitions $\Gamma$. The operational semantics is
 shown in Figure \ref{fig:semantics} using judgement form: $\sigma
 |-_\Gamma t => v$. A judgement of this form should be interpreted as:
 \textit{given environment $\sigma$ and function definitions $\Gamma$,
   the term $t$ evaluates to the value $v$.}
-
 
 \section{Universal resolving algorithm}
 The Universal Resolving Algorithm is partitioned into three separate
@@ -239,7 +239,6 @@ pairs. This step is called tabulation.
 The final step is to extract the answers for a given output from the
 table of input/output pairs, to obtain the set of corresponding input
 values.
-
 
 \subsection{Tracing: Obtaining a Perfect Process Tree}
 Tracing a program to obtain a perfect process tree is done on the
@@ -271,7 +270,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       ea_1 \neq ea_2 \quad \kappa = (ea_1\ \#\ ea_2)
     }{
       |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_2, \kappa>>
-    } \tagsc{If-NotEq}
+    } \tagsc{If-Neq-False}
   \end{equation}
 
   \begin{equation}
@@ -279,8 +278,10 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       ea_1 \neq ea_2 \quad (ea_1\ \#\ ea_2) \not \in \textrm{Tauto} \quad \kappa = [\textrm{mkBind}(ea_1, ea_2)]
     }{
       |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa>>
-    } \tagsc{If-BindVar}
+    } \tagsc{If-Neq-True}
   \end{equation}
+
+  ~\newline
 
   \begin{equation}
     \nfrac{
@@ -294,7 +295,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       \end{array}
     }{
       |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_1 / \theta, \kappa_{id} >>
-    }
+    } \tagsc{Case-Cons}
   \end{equation}
 
   \begin{equation}
@@ -309,7 +310,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       \end{array}
     }{
       |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_2 / \theta, \kappa_{id}>>
-    }
+    } \tagsc{Case-Atom}
   \end{equation}
 
   \begin{equation}
@@ -325,7 +326,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       \end{array}
     }{
       |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_1 / \theta, \kappa>>
-    }
+    } \tagsc{Case-Var-Cons}
   \end{equation}
 
   \begin{equation}
@@ -341,8 +342,10 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       \end{array}
     }{
       |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_2 / \theta, \kappa>>
-    }
+    } \tagsc{Case-Var-Atom}
   \end{equation}
+
+  ~\newline
 
   \begin{equation}
     \nfrac{
@@ -353,10 +356,10 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
       \end{array}
     }{
       |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ ... $e_n$} => <<t / \theta, \kappa_{id}>>
-    }
+    } \tagsc{Call}
   \end{equation}
 
-  \caption{Tracing}
+  \caption{Trace semantics}
   \label{fig:tracing}
 \end{figure*}
 
@@ -377,6 +380,45 @@ from \textit{positive supercompilation} by defining a homeomorphic
 embedding of terms. The embedding is shown on Figure
 \ref{fig:embedding}.
 
+\section{Closed URA}
+% This section will replace parts of the previous section
+Given a TRFL program and a partially specified input, the \emph{Closed
+  URA} (CURA) algorithm creates a process tree representing the
+possible state transitions of the program. Like URA, CURA
+non-deterministically branches when it cannot decide the flow of
+control resulting from the partially specified input, applying
+\emph{perfect splits} to split the set of possible inputs into
+disjoint sets, one for each branch.
+
+As described earlier, URA is based on walking an often infinite
+process tree, creating a table of pairs of output and input sets. CURA
+is an off-line algorithm that outputs a closed representation of the
+process tree. The closed process tree is not a solution to the
+inversion problem in itself, but may serve as a useful representation
+for creating specialized search programs.
+
+\subsection{Preliminaries}
+We use the same definition of trees as in
+\cite{sorensen1998introduction}. That is, a tree over a set $E$ is a
+partial function $t : \mathbb{N}_1^\star \rightarrow E$, with the
+usual restrictions required for representing finitely branching trees
+(see \cite{sorensen1998introduction}\cite{courcelle1983fundamental}
+for details).
+
+By $\dom(t)$ we denote the set of nodes in tree $t$, and by
+$t(\alpha)$ we denote the label at node $\alpha$. ${\rm anc}(t,
+\alpha)$ denotes the set of ancestors for node $\alpha$ in tree $t$,
+and for some $\alpha \in \dom(t)$, $t\{\alpha := t'\}$ denotes the
+tree obtained from $t$ by replacing the subtree rooted at node
+$\alpha$ with $t'$.
+
+The tree $e \rightarrow e_1, ..., e_n$ is the tree with root labeled
+$e$ and children labeled $e_1, ..., e_n$.
+
+\subsection{Trace semantics}
+The trace semantics for TRFL can be seen in Figure \ref{fig:tracing}.
+
+\section{Size-change termination analysis}
 
 \begin{figure*}\centering
   \begin{equation}
