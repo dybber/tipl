@@ -64,7 +64,7 @@ Algorithm.
 \newpage
 \section{Introduction}
 Conventionally, when we execute a program, we hand it some an input
-value and after some time it return with an output. In the field of
+value and after some time it returns with an output. In the field of
 \textit{inverse interpretation}, we seek to reverse this process, by
 handing the same program its output and then finding the possible
 inputs by ``backwards execution''. An \textit{inverse interpreter}
@@ -94,11 +94,12 @@ representing ``foo'', but we only specify some metavariable as the
 input for the first argument. A solution from URA will compute all
 possible substitutions of such metavariables that will give rise to
 the output \texttt{'true}. It is in this sense that the algorithm is
-universal. An existential algorithm would just find a single input value.
+universal. An existential algorithm would just find a single input
+value.
 
 The universal algorithm is made for inverse interpretation, but it can
 also be used for the problem of \textit{program inversion}. Using a
-self-interpreter and the Futamura-projections, the \textit{program
+self-interpreter and the Futamura-projections, a \textit{program
   inverter} can be obtained from the program interpreter. This is much
 related to how a compiler can be obtained from an interpreter through
 the use of a partial evaluator. The exact way this is done, is shown
@@ -177,15 +178,22 @@ depending on whether they only contain atoms.
 \label{fig:bnf}
 \end{figure}
 
-When we do inverse-computation, the set of resulting input-values can
-often be described by dividing them into classes of values that obeys
-a given constraint. We call such generalized values for
-\textit{C-expressions} and represent them by extending our value
-domain with meta-variables. The domain of C-expressions is shown in
-Figure \ref{fig:cbnf} as $\mathcal{\widehat{A}}$ and
-$\mathcal{\widehat{E}}$. In addition we will need terms containing
-such meta variables, these are denoted $\widehat{t} \in
-\widehat{\mathcal{T}}$.
+As explained, the result of inverse-computation on non-injective
+functions might result in several input values for one input. The set
+of inputs might even be infinite. We represent these classes of
+inputs, by placing meta-variables in the places where they vary, and
+registering constraints that should be obeyed by these variables.  We
+call such generalized values for \textit{C-expressions}. The domain of
+C-expressions is shown in Figure \ref{fig:cbnf} as
+$\mathcal{\widehat{A}}$ and $\mathcal{\widehat{E}}$. In addition we
+define terms containing such meta variables, these are denoted
+$\widehat{t} \in \widehat{\mathcal{T}}$.
+
+A good analogy for these input-classes is the ZF-notation for
+describing mathematical sets, where the left-hand side instead is
+represented by \textit{C-expressions} and we use the right-hand side
+to specify the constraints on the meta-variables occurring in the
+\textit{C-expression}.
 
 \begin{figure}\centering
   \begin{align*}
@@ -205,7 +213,6 @@ such meta variables, these are denoted $\widehat{t} \in
 \label{fig:cbnf}
 \end{figure}
 
-
 \subsection{Semantics}
 Terms in TSG$'$ are parameterized over an environment $\sigma$ and
 the set of function definitions $\Gamma$. The operational semantics is
@@ -213,86 +220,6 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
 |-_\Gamma t => v$. A judgement of this form should be interpreted as:
 \textit{given environment $\sigma$ and function definitions $\Gamma$,
   the term $t$ evaluates to the value $v$.}
-
-\begin{figure*}\centering
-  \begin{equation}
-    \nfrac{
-      ea_1/ \sigma = ea_2/\sigma \quad
-      \sigma |-_\Gamma t_1 => v_1
-    }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_1
-    }
-    \qquad
-    \nfrac{
-      ea_1/ \sigma \neq ea_2/\sigma \quad
-      \sigma |-_\Gamma t_2 => v_2
-    }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
-    } \tagsc{If}
-\end{equation}
-
-\begin{equation}
-\hspace{-0.7cm}
-  \nfrac{
-    \begin{array}{c}
-      \Gamma(\textit{gname}) =
-      \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
-      \end{array} \\
-      e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
-      \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
-    \end{array}
-  }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
-  }
-\qquad
-  \nfrac{
-    \begin{array}{c}
-      \Gamma(\textit{gname}) =
-      \begin{array}{l}
-        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
-      \end{array} \\
-      e_0/\sigma = \texttt{'}s \\
-      \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
-    \end{array}
-  }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
-  }
-  % \nfrac{
-  %   \begin{array}{c}
-  %     \Gamma(\textit{gname}) =
-  %     \begin{array}{l}
-  %       \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
-  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
-  %     \end{array} \\
-  %     e_1/\sigma = \texttt{'$s$} \\
-  %     \sigma\{\texttt{.}x |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
-  %   \end{array}
-  % }{
-  %   \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
-  % }
-  \tagsc{Call-G}
-\end{equation}
-
-\begin{equation}
-  \nfrac{
-    \begin{array}{c}
-      \Gamma(\textit{fname}) =
-        \texttt{fun \textit{\rmfamily fname} $x_1$ $x_2$ $\ldots$ $x_n$ = $t$}
-        \\
-      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t => v
-    \end{array}
-  }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v
-  } \tagsc{Call-F}
-\end{equation}
-
-
-\caption{Operational Semantics for TSG'}
-\label{fig:semantics}
-\end{figure*}
 
 
 \section{Universal resolving algorithm}
@@ -303,9 +230,8 @@ First, all possible execution paths of the program is traced out, to
 obtain a process tree of such traces. This is done by monitoring an
 execution of the program and collecting information about which
 branches it might take for different kinds of input. The process tree
-generated by URA is perfect in the sense that all branches are
-disjoint, such that the for one input only a single linear trace
-through the program will be taken.
+generated by URA is perfect in the sense that all nodes in the tree is
+reachable for some input value.
 
 Second, the process tree is walked to obtain a table of input/output
 pairs. This step is called tabulation.
@@ -315,10 +241,21 @@ table of input/output pairs, to obtain the set of corresponding input
 values.
 
 
-\subsection{Tracing the Perfect Process Tree}
-Here we will show how a perfect process tree of a program is generated
-by tracing its possible execution paths. Figure \ref{fig:tracing}
-shows the tracing semantics of TSG$'$.
+\subsection{Tracing: Obtaining a Perfect Process Tree}
+Tracing a program to obtain a perfect process tree is done on the
+basis of some input class. In the most general case, this input-class
+can be specified as all possible values (a single meta-variable), but
+it can often be desirable to restrict the set of possible inputs to a
+certain form.
+
+The tracing proceeds by stepping through the semantics of the
+language, creating a new node for each step. Because we have an
+input-class rather than a concrete input value, certain conditionals
+in the program might not be decidable, we thus create branches for
+each possibility. Edges in the tree is tagged with the information
+assumed when each of the possible branches is followed.
+
+Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$. 
 
 \begin{figure*}
   \begin{equation}
@@ -537,8 +474,88 @@ embedding of terms. The embedding is shown on Figure
 \bibliographystyle{abbrvnat}
 \bibliography{../bibliography}
 
-% \appendix
-% \section{Appendix Title}
+\appendix
+\section{TRFL Semantics}
+\begin{figure*}\centering
+  \begin{equation}
+    \nfrac{
+      ea_1/ \sigma = ea_2/\sigma \quad
+      \sigma |-_\Gamma t_1 => v_1
+    }{
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_1
+    }
+    \qquad
+    \nfrac{
+      ea_1/ \sigma \neq ea_2/\sigma \quad
+      \sigma |-_\Gamma t_2 => v_2
+    }{
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
+    } \tagsc{If}
+\end{equation}
+
+\begin{equation}
+\hspace{-0.7cm}
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{gname}) =
+      \begin{array}{l}
+        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+      \end{array} \\
+      e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
+      \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+  }
+\qquad
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{gname}) =
+      \begin{array}{l}
+        \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
+        \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+      \end{array} \\
+      e_0/\sigma = \texttt{'}s \\
+      \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+  }
+  % \nfrac{
+  %   \begin{array}{c}
+  %     \Gamma(\textit{gname}) =
+  %     \begin{array}{l}
+  %       \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
+  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
+  %     \end{array} \\
+  %     e_1/\sigma = \texttt{'$s$} \\
+  %     \sigma\{\texttt{.}x |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
+  %   \end{array}
+  % }{
+  %   \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
+  % }
+  \tagsc{Call-G}
+\end{equation}
+
+\begin{equation}
+  \nfrac{
+    \begin{array}{c}
+      \Gamma(\textit{fname}) =
+        \texttt{fun \textit{\rmfamily fname} $x_1$ $x_2$ $\ldots$ $x_n$ = $t$}
+        \\
+      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t => v
+    \end{array}
+  }{
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v
+  } \tagsc{Call-F}
+\end{equation}
+
+
+\caption{Operational Semantics for TSG'}
+\label{fig:semantics}
+\end{figure*}
+
 
 
 
