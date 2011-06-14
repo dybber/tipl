@@ -322,93 +322,83 @@ by tracing its possible execution paths. Figure \ref{fig:tracing}
 shows the tracing semantics of TRFL.
 
 \begin{figure*}
-  \begin{equation}
+  \begin{align}
     \nfrac{
-      ea_1 = ea_2
+      \widehat{ea_1} = \widehat{ea_2}
     }{
-      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa_{id}>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_1}, \kappa_{id}>>
     } \tagsc{If-Eq}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
-      ea_1 \neq ea_2 \quad \kappa = (ea_1\ \#\ ea_2)
+      \widehat{ea_1} \neq \widehat{ea_2} \quad \kappa = (\widehat{ea_1}\ \#\ \widehat{ea_2})
     }{
-      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_2, \kappa>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_2}, \kappa>>
     } \tagsc{If-Neq-False}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
-      ea_1 \neq ea_2 \quad (ea_1\ \#\ ea_2) \not \in \textrm{Tauto} \quad \kappa = [\textrm{mkBind}(ea_1, ea_2)]
+      \widehat{ea_1} \neq \widehat{ea_2} \quad (\widehat{ea_1}\ \#\ \widehat{ea_2}) \not \in \textrm{Tauto} \quad \kappa = [\textrm{mkBind}(\widehat{ea_1}, \widehat{ea_2})]
     }{
-      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => <<t_1, \kappa>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_1}, \kappa>>
     } \tagsc{If-Neq-True}
-  \end{equation}
+  \end{align}
 
   ~\newline
 
-  \begin{equation}
+  \begin{align}
     \nfrac{
       \begin{array}{c}
-        e_0 = [e_\alpha, e_\beta] \quad \theta = \{ x_\alpha := e_\alpha, x_\beta := e_\beta, x_1 := e_1, ..., x_n := e_n \} \\
+        \widehat{e_0} = [\widehat{e_\alpha}, \widehat{e_\beta}] \quad \theta = \{ x_\alpha := \widehat{e_\alpha}, x_\beta := \widehat{e_\beta}, x_1 := \widehat{e_1}, ..., x_n := \widehat{e_n} \} \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
           \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{0.95cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_1 / \theta, \kappa_{id} >>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<t_1 / \theta, \kappa_{id} >>
     } \tagsc{Case-Cons}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
       \begin{array}{c}
-        e_0 = ea \quad \theta = \{ .x := ea, x_1' := e_1, ..., x_n' := e_n \} \\
+        \widehat{e_0} = \widehat{ea} \quad \theta = \{ .x := \widehat{ea}, x_1' := \widehat{e_1}, ..., x_n' := \widehat{e_n} \} \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
           \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{0.95cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_2 / \theta, \kappa_{id}>>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => << t_2 / \theta, \kappa_{id}>>
     } \tagsc{Case-Atom}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
       \begin{array}{c}
-        e_0 = Xe \quad \theta = \{ x_\alpha := X_{e_1}^\diamond, x_\beta := X_{e_2}^\diamond, x_1 := e_1, ..., x_n := e_n \} \\
-        \kappa = [Xe \mapsto [X_{e_1}^\diamond, X_{e_2}^\diamond]] \\
+        \widehat{e_0} = \widehat{Xe} \quad \theta = \{ x_\alpha := \widehat{X_{e_1}^\diamond}, x_\beta := \widehat{X_{e_2}^\diamond}, x_1 := \widehat{e_1}, ..., x_n := \widehat{e_n} \} \\
+        \kappa = [\widehat{Xe} \mapsto [\widehat{X_{e_1}^\diamond}, \widehat{X_{e_2}^\diamond}]] \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
           \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{0.95cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_1 / \theta, \kappa>>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<t_1 / \theta, \kappa>>
     } \tagsc{Case-Var-Cons}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
       \begin{array}{c}
-        e_0 = Xe \quad \theta = \{ .x := X_{a}^\diamond, x_1' := e_1', ..., x_n' := e_n' \} \\
-        \kappa = [Xe \mapsto Xa^\diamond] \\
+        \widehat{e_0} = \widehat{Xe} \quad \theta = \{ .x := \widehat{X_{a}^\diamond}, x_1' := \widehat{e_1'}, ..., x_n' := \widehat{e_n'} \} \\
+        \kappa = [\widehat{Xe} \mapsto \widehat{Xa^\diamond}] \\
         \Gamma(\textit{gname}) =
         \begin{array}{l}
           \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
-          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
+          \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{0.95cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ ... $e_n$} => <<t_2 / \theta, \kappa>>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<t_2 / \theta, \kappa>>
     } \tagsc{Case-Var-Atom}
-  \end{equation}
+  \end{align}
 
   ~\newline
 
@@ -417,10 +407,10 @@ shows the tracing semantics of TRFL.
       \begin{array}{c}
         \Gamma(\textit{fname}) =
           \texttt{fun \textit{\rmfamily fname} $x_1$ $\ldots$ $x_n$ = $t$} \\
-        \theta = \{ x_1 := e_1, ..., x_n := e_n \}
+        \theta = \{ x_1 := \widehat{e_1}, ..., x_n := \widehat{e_n} \}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ ... $e_n$} => <<t / \theta, \kappa_{id}>>
+      |-_\Gamma \texttt{\textit{\rmfamily fname} $\widehat{e_1}$ ... $\widehat{e_n}$} => <<t / \theta, \kappa_{id}>>
     } \tagsc{Call}
   \end{equation}
 
@@ -481,7 +471,25 @@ The tree $e \rightarrow e_1, ..., e_n$ is the tree with root labeled
 $e$ and children labeled $e_1, ..., e_n$.
 
 \subsection{Trace semantics}
-The trace semantics for TRFL can be seen in Figure \ref{fig:tracing}.
+The trace semantics for TRFL can be seen in Figure
+\ref{fig:tracing}. The semantics are non-deterministic when a branch
+cannot be decided, and therefore describes an infinite process tree.
+
+A C-term $\widehat{t}$ in our language fully describes a given set of
+program states, and the semantics therefore describes transitions
+between C-terms. Each transition is associated with a
+\emph{contraction} $\kappa$, which reflects the constraint that must
+be true to reach the destination state.
+
+\subsection{Closed trees}
+In order to ensure that the resulting process tree is finite, we have
+
+\begin{figure*}\centering
+  \begin{align*}
+    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{X_1} = \widehat{e_1} ... \widehat{X_n} = \widehat{e_n}$ in $\widehat{t}$}
+  \end{align*}
+  \caption{Syntax of let-generalized C-terms}
+\end{figure*}
 
 \section{Size-change termination analysis}
 
