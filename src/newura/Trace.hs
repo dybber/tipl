@@ -9,7 +9,8 @@ import Data.Map ((!))
 ppt :: Program -> Class -> Tree
 ppt prog (ds, _) = trace pm (initFreshVars, root)
     where root = Branch (Let [] t0) []
-          t0 = FAppT (F"main") ds
+          t0 = FAppT (F"main") (take (length vs) ds)
+          (FFunD _ vs _) = pm ! Fname' (F"main")
           pm = mkProgMap prog
 
 trace :: ProgMap -> (FreshVars C, Tree) -> Tree
