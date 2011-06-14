@@ -2,6 +2,10 @@ tex/*/*.aux
 tex/*/*.bbl
 tex/*/*.blg
 tex/*/*.pdf
+tex/*/*.dvi
 tex/*/*.log
 tex/auto
 tex/*/auto
+*.o
+*.hi
+*~

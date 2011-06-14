@@ -1,0 +1,14 @@
+fun main xs = Neq xs
+
+fun Neq [x1, xs] = Neq2 xs x1
+  | Neq .a = 'true
+
+fun Neq2 [x2, xs] x1 = Test x1 x2 xs
+  | Neq2 .a x2 = 'odd-length
+
+fun Test [a, b] x2 xs = 'error-x1-cons
+  | Test .x1 x2 xs = Test2 x2 .x1 xs
+
+fun Test2 [a, b] .x1 xs = 'error-x2-cons
+  | Test2 .x2 .x1 xs = if .x1 == .x2 then 'error-pair-eq
+                                     else Neq xs
