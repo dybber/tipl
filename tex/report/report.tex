@@ -207,7 +207,9 @@ to specify the constraints on the meta-variables occurring in the
     | \quad & \widehat{Xe} \\
     | \quad & \widehat{ea} \\
     \widehat{\mathcal{A}} \ni \widehat{ea} ::= & \texttt{'}s \tag{Atomic C-expression} \\
-    | \quad & \widehat{Xa}
+    | \quad & \widehat{Xa} \\
+    \tag{Generalized C-term} \\
+    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{X_1} = \widehat{e_1} ... \widehat{X_n} = \widehat{e_n}$ in $\widehat{t}$}
   \end{align*}
 
 \caption{Syntax of terms and expressions with meta variables}
@@ -261,19 +263,19 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
     \nfrac{
       \widehat{ea_1} = \widehat{ea_2}
     }{
-      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_1}, \kappa_{id}>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\kappa_{id},\widehat{t_1}>>
     } \tagsc{If-Eq}
 \\\nonumber\\
     \nfrac{
       \widehat{ea_1} \neq \widehat{ea_2} \quad \kappa = (\widehat{ea_1}\ \#\ \widehat{ea_2})
     }{
-      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_2}, \kappa>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\kappa, \widehat{t_2}>>
     } \tagsc{If-Neq-False}
 \\\nonumber\\
     \nfrac{
       \widehat{ea_1} \neq \widehat{ea_2} \quad (\widehat{ea_1}\ \#\ \widehat{ea_2}) \not \in \textrm{Tauto} \quad \kappa = [\textrm{mkBind}(\widehat{ea_1}, \widehat{ea_2})]
     }{
-      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\widehat{t_1}, \kappa>>
+      |-_\Gamma \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} => <<\kappa, \widehat{t_1}>>
     } \tagsc{If-Neq-True}
   \end{align}
 
@@ -290,7 +292,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<t_1 / \theta, \kappa_{id} >>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<\kappa_{id},  t_1 / \theta>>
     } \tagsc{Case-Cons}
 \\\nonumber\\
     \nfrac{
@@ -303,7 +305,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => << t_2 / \theta, \kappa_{id}>>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => << \kappa_{id}, t_2 / \theta>>
     } \tagsc{Case-Atom}
 \\\nonumber\\
     \nfrac{
@@ -331,7 +333,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
         \end{array}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<t_2 / \theta, \kappa>>
+      |-_\Gamma \texttt{\textit{\rmfamily gname} $\widehat{e_0}$ ... $\widehat{e_n}$} => <<\kappa, t_2 / \theta>>
     } \tagsc{Case-Var-Atom}
   \end{align}
 
@@ -345,7 +347,7 @@ Figure \ref{fig:tracing} shows the tracing semantics of TSG$'$.
         \theta = \{ x_1 := \widehat{e_1}, ..., x_n := \widehat{e_n} \}
       \end{array}
     }{
-      |-_\Gamma \texttt{\textit{\rmfamily fname} $\widehat{e_1}$ ... $\widehat{e_n}$} => <<t / \theta, \kappa_{id}>>
+      |-_\Gamma \texttt{\textit{\rmfamily fname} $\widehat{e_1}$ ... $\widehat{e_n}$} => << \kappa_{id}, t / \theta>>
     } \tagsc{Call}
   \end{equation}
 
@@ -405,7 +407,7 @@ $\alpha$ with $t'$.
 The tree $e \rightarrow e_1, ..., e_n$ is the tree with root labeled
 $e$ and children labeled $e_1, ..., e_n$.
 
-\subsection{Trace semantics}
+\subsection{Building the process tree}
 The trace semantics for TRFL can be seen in Figure
 \ref{fig:tracing}. The semantics are non-deterministic when a branch
 cannot be decided, and therefore describes an infinite process tree.
@@ -414,17 +416,22 @@ A C-term $\widehat{t}$ in our language fully describes a given set of
 program states, and the semantics therefore describes transitions
 between C-terms. Each transition is associated with a
 \emph{contraction} $\kappa$, which reflects the constraint that must
-be true to reach the destination state.
+be satisfied for the program to reach the given destination state.
+
+A process tree is a tree $t$ with labels over $\mathcal{K} \times
+\widehat{\mathcal{L}}$. When building the process tree for a given
+program, we start with the tree $(\kappa_{id}, \widehat{t_0})
+\rightarrow$ consisting of a single node with the initial program
+state $\widehat{t_0}$ as label. Using the trace semantics, we
+iteratively add child nodes, creating branches when multiple rules
+apply at the same time. By ${\rm drive}(t, \alpha)$ we denote the tree
+obtained by exhaustively applying the tracing rules on the state in
+$t(\alpha)$, adding the resulting constraction/state pairs as child
+nodes to $\alpha$.
 
 \subsection{Closed trees}
-In order to ensure that the resulting process tree is finite, we have
+In order to ensure that the resulting process tree is finite, we
 
-\begin{figure*}\centering
-  \begin{align*}
-    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{X_1} = \widehat{e_1} ... \widehat{X_n} = \widehat{e_n}$ in $\widehat{t}$}
-  \end{align*}
-  \caption{Syntax of let-generalized C-terms}
-\end{figure*}
 
 \section{Size-change termination analysis}
 
