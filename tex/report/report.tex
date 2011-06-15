@@ -338,7 +338,7 @@ depending on whether they only contain atoms.
     AVal \ni va ::= & \texttt{'}s
   \end{align*}
   \caption{Values in TRFL.}
-\label{fig:bnf}
+\label{fig:vbnf}
 \end{figure}
 
 As explained, the result of inverse-computation on non-injective
@@ -391,6 +391,7 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
   the term $t$ evaluates to the value $v$.}
 
 \section{Closed URA}
+\label{sec:closed-ura}
 Given a TRFL program and a partially specified input, the \emph{Closed
   URA} (CURA) algorithm first creates a process tree representing the
 possible state transitions of the program, and then uses this tree to
@@ -630,7 +631,9 @@ variables.
 Using the above stop criterion alone will not ensure that the tracing
 algorithm terminates in all cases, since it will fail to stop on
 infinitely increasing terms. To accomodate for this, we introduce
-\emph{abstractions}.
+\emph{abstractions}. In our definition of abstractions, we use the
+notion of \emph{most specific generalizations} as defined in
+\cite{sorensen1998introduction}. An abstraction is defined as follows:
 \begin{definition}
   For $\alpha, \beta \in \dom(t)$ with $\widehat{l_g} =
   t_\mathcal{L}(\alpha) \sqcap t_\mathcal{L}(\beta)$ and
