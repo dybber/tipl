@@ -27,6 +27,7 @@
 \mathlig{>>}{\rangle}
 \newcommand{\dom}{\ensuremath{{\rm dom}}}
 \newcommand{\anc}{\ensuremath{{\rm anc}}}
+\newcommand{\gen}{\ensuremath{~{\leq\kern-6pt \raisebox{1pt}{$\cdot$}}~}}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
@@ -323,8 +324,10 @@ constraints on the meta-variables occurring in the
     | \quad & \widehat{ea} \\
     \widehat{\mathcal{A}} \ni \widehat{ea} ::= & \texttt{'}s \tag{Atomic C-expression} \\
     | \quad & \widehat{Xa} \\
+    \widehat{\mathcal{X}} \ni \widehat{x} ::= & \widehat{Xe} \tag{C-variable} \\
+    | \quad & \widehat{Xa} \\
     \tag{Generalized C-term} \\
-    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{X_1} = \widehat{e_1} ... \widehat{X_n} = \widehat{e_n}$ in $\widehat{t}$}
+    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{x_1} = \widehat{e_1}$; $...$; $\widehat{x_n} = \widehat{e_n}$ in $\widehat{t}$}
   \end{align*}
 
 \caption{Syntax of terms and expressions with meta variables}
@@ -339,29 +342,26 @@ shown in Figure \ref{fig:semantics} using judgement form: $\sigma
 \textit{given environment $\sigma$ and function definitions $\Gamma$,
   the term $t$ evaluates to the value $v$.}
 
-\section{Generalization in the PPT}
-Here we will show how to create the perfect process tree in a way such
-that we obtain a finite representation. This is done using techniques
-from \textit{positive supercompilation} by defining a homeomorphic
-embedding of terms. The embedding is shown on Figure
-\ref{fig:embedding}.
-
 \section{Closed URA}
-% This section will replace parts of the previous section
 Given a TRFL program and a partially specified input, the \emph{Closed
-  URA} (CURA) algorithm creates a process tree representing the
-possible state transitions of the program. Like URA, CURA
-non-deterministically branches when it cannot decide the flow of
-control resulting from the partially specified input, applying
-\emph{perfect splits} to split the set of possible inputs into
-disjoint sets, one for each branch.
+  URA} (CURA) algorithm first creates a process tree representing the
+possible state transitions of the program, and then uses this tree to
+search for possible inputs using a given output value. Like URA, the
+tracing algorithm of CURA non-deterministically branches when it
+cannot decide the flow of control resulting from the partially
+specified input, applying \emph{perfect splits} to split the set of
+possible inputs into disjoint sets, one for each branch.
 
 As described earlier, URA is based on walking an often infinite
-process tree, creating a table of pairs of output and input sets. CURA
-is an off-line algorithm that outputs a closed representation of the
-process tree. The closed process tree is not a solution to the
-inversion problem in itself, but may serve as a useful representation
-for creating specialized search programs.
+process tree, creating a table of pairs of output and input
+sets. Because the process tree can be infinite, tracing of the process
+tree has to be done on-line while tabulating input/output pairs. The
+tracing step in CURA is an off-line algorithm that outputs a closed
+representation of the process tree. The closed process tree is not a
+solution to the inversion problem in itself, but can be used for
+tabulation in the same way as URA, or it can be used to perform a
+non-deterministic backwards search for input classes, given an output
+value.
 
 \subsection{Preliminaries}
 We use the same definition of trees as in
@@ -376,7 +376,7 @@ $t(\alpha)$ we denote the label at node $\alpha$. ${\rm anc}(t,
 \alpha)$ denotes the set of ancestors for node $\alpha$ in tree
 $t$. By $\anc(t, \alpha)$ we denote the set of nodes that are
 ancestors to $\alpha$ in $t$, and for some $\alpha \in \dom(t)$,
-$t\{\alpha := t'\}$ denotes the tree obtained from $t$ by replacing
+$t\{\alpha \mapsto t'\}$ denotes the tree obtained from $t$ by replacing
 the subtree rooted at node $\alpha$ with $t'$.
 
 The tree $e \rightarrow e_1, ..., e_n$ is the tree with root labeled
@@ -388,25 +388,51 @@ The trace semantics for TRFL can be seen in Figure
 cannot be decided, and therefore describes an infinite process tree.
 
 A C-term $\widehat{t}$ in our language fully describes a given set of
-program states, and the semantics therefore describes transitions
-between C-terms. Each transition is associated with a
-\emph{contraction} $\kappa$, which reflects the constraint that must
-be satisfied for the program to reach the given destination state.
+program states. The \textsc{If-*}, \textsc{Case-*} and \textsc{Call}
+rules describe transitions between C-terms. Each transition is
+associated with a \emph{contraction} $\kappa$, which reflects the
+constraint that must be satisfied for the program input to reach the
+given destination state. When multiple branches can be taken, the
+contractions are guaranteed to split the input class into disjoint
+sets. See Figure \ref{fig:edge} for the syntax of contractions.
 
-A process tree is a tree $t$ with labels over $\mathcal{K} \times
+For simplicity of the tracing rules, our trace semantics does not cut
+\emph{infeasible branches}. However, as stated in
+\cite{abramov2000universal}, even though the efficiency of the
+algorithm may suffer, soundness and completeness is still preserved as
+long as the tracing algorithm applies perfect splits along branches.
+
+A let-term $\widehat{l}$ is used when we need to generalize a C-term
+in order to ensure termination of the tracing algorithm. Transitions
+for let-terms are described by the \textsc{Let-*} rules. A transition
+between let-terms is associated with either a contraction $\kappa$ or
+an \emph{expansion} $\sigma$.
+
+A process tree is a tree $t$ with labels over $\Omega \times
 \widehat{\mathcal{L}}$. For brevity, we write $t_\mathcal{L}(\alpha)$
 for the $\widehat{\mathcal{L}}$-part of $t(\alpha)$ and
-$t_\mathcal{K}(\alpha)$ for the $\mathcal{K}$-part. When building the
-process tree for a given program, we start with the tree
-$(\kappa_{id}, \widehat{t_0}) \rightarrow$ consisting of a single node
-with the initial program state $\widehat{t_0}$ as label. Using the
-trace semantics, we iteratively add child nodes, creating branches
-when multiple rules apply at the same time. For a tree $t$ and a leaf
-node $\alpha \in \dom(t)$, we write ${\rm drive}(t, \alpha)$ to denote
-the tree obtained by exhaustively applying the tracing rules on
-$t_\mathcal{L}(\alpha)$, adding the resulting constraction/state pairs
-as child nodes to $\alpha$.
+$t_\Omega(\alpha)$ for the $\Omega$-part. When building the process
+tree for a given program, we start with the tree $(\kappa_{id},
+\texttt{let $\emptyset$ in $\widehat{t_0}$}) \rightarrow$ consisting
+of a single node with the initial program state $\widehat{t_0}$ as
+label. Using the trace semantics, we iteratively add child nodes,
+creating branches when multiple rules apply at the same time. For a
+tree $t$ and a leaf node $\alpha \in \dom(t)$, we write ${\rm
+  drive}(t, \alpha)$ to denote the tree obtained by exhaustively
+applying the tracing rules on $t_\mathcal{L}(\alpha)$, adding the
+resulting $\Omega \times \widehat{L}$ pairs as child nodes to
+$\alpha$.
 
+\begin{figure}
+  \begin{align*}
+    \mathcal{K} \ni \kappa ::= & \widehat{ea_1}~\#~\widehat{ea_2} \tag{Contraction} \\
+                       | \quad & (\widehat{x} \mapsto \widehat{e})^{+} \\
+    \Sigma \ni \sigma ::= & (\widehat{x} \gen \widehat{e})^{+} \tag{Expansion} \\
+    \Omega \ni \omega ::= & \kappa ~|~ \sigma \tag{Edge label}
+  \end{align*}
+  \caption{Edge labels}
+  \label{fig:edge}
+\end{figure}
 
 \begin{figure*}
   \begin{align}
@@ -503,21 +529,20 @@ as child nodes to $\alpha$.
 
   ~\newline
 
-  \begin{equation}
+  \begin{align}
     \nfrac{
-      |-_\Gamma \widehat{t} => << \kappa, \widehat{t'} >>
+      L=\emptyset \quad |-_\Gamma \widehat{t} => << \kappa, \widehat{t'} >>
     }{
-      |-_\Gamma \texttt{let $\emptyset$ in $\widehat{t}$} => <<\kappa, \texttt{let $\emptyset$ in $\widehat{t'}$}>>
+      |-_\Gamma \texttt{let $L$ in $\widehat{t}$} \rightharpoonup <<\kappa, \texttt{let $L$ in $\widehat{t'}$}>>
     } \tagsc{Let-NonProper}
-  \end{equation}
-
-  \begin{equation}
+\\\nonumber\\
     \nfrac{
-     L = \texttt{$\widehat{X_1}$ = $\widehat{e_1}$; $...$; $\widehat{X_n}$ = $\widehat{e_n}$}
+     L = \texttt{$\widehat{x_1}$ = $\widehat{e_1}$; $...$; $\widehat{x_n}$ = $\widehat{e_n}$}\quad
+     \omega = \{ \widehat{x_1} \gen \widehat{e_1}, ..., \widehat{x_n} \gen \widehat{e_n} \}
     }{
-      |-_\Gamma \texttt{let $L$ in $\widehat{t}$} => <<\kappa, \texttt{let $\emptyset$ in $\widehat{t'}$} >>
+      |-_\Gamma \texttt{let $L$ in $\widehat{t}$} \rightharpoonup <<\omega, \texttt{let $\emptyset$ in $\widehat{t'}$} >>
     } (n > 0) \tagsc{Let-Proper}
-  \end{equation}
+  \end{align}
 
   \caption{Trace semantics}
   \label{fig:tracing}
@@ -526,12 +551,11 @@ as child nodes to $\alpha$.
 
 \subsection{Closed process trees}
 Iteratively driving the leaves of a process tree until there are no
-more leaf nodes for which the trace rules apply, will not guarantee
-termination. In order to ensure termination, we must employ some kind
-of stop criterion to prevent our algorithm from going on indefinitely,
-while still ensuring that all possible control flows are represented
-in the process tree.
-
+more leaf nodes for which the trace rules apply will not guarantee
+termination of the tracing algorithm. In order to ensure termination,
+we must employ some kind of stop criterion to prevent our algorithm
+from going on indefinitely, while still ensuring that all possible
+control flows are represented in the process tree.
 \begin{definition}
   For some tree $t$ and leaf node $\alpha \in \dom(t)$, we say that
   $\alpha$ is \emph{processed} if $t_\mathcal{L}(\alpha)$ is not
@@ -557,7 +581,22 @@ variables.
 
 Using the above stop criterion alone will not ensure that the tracing
 algorithm terminates in all cases, since it will fail to stop on
-infinitely increasing terms.
+infinitely increasing terms. To accomodate for this, we introduce
+\emph{abstractions}.
+\begin{definition}
+  For $\alpha, \beta \in \dom(t)$ with $\widehat{l_g} =
+  t_\mathcal{L}(\alpha) \sqcap t_\mathcal{L}(\beta)$ and
+  $t_\mathcal{L}(\alpha) = \widehat{l_g} \{ \widehat{x_1} \mapsto
+  \widehat{e_1}, ..., \widehat{x_n} \mapsto \widehat{e_n} \}$, we
+  define
+\begin{align*}
+{\rm abstract}(t,\alpha,\beta) = t \{ \alpha \mapsto (t_\Omega(\alpha), \widehat{l_\alpha'})\rightarrow \}
+\end{align*}
+where
+\begin{align*}
+\widehat{l_\alpha'} = \texttt{let $\widehat{x_1}$ = $\widehat{e_1}$; $...$; $\widehat{x_n}$ = $\widehat{e_n}$ in $\widehat{l_g}$}
+\end{align*}
+\end{definition}
 
 
 \section{Size-change termination analysis}
