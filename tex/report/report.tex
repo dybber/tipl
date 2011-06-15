@@ -45,11 +45,8 @@
   interpretation, based on the notion of a \textit{perfect process
     tree} \cite{gluck1993occam} for representing the possible traces
   of a program. Such process trees can have an a infinite
-  representation, and thus the universal resolving algorithm is not
-  guaranteed to terminate.
-
-  In this paper we investigate how to obtain a closed representation
-  of process trees useful in the universal resolving algorithm.
+  representation, and without cutting such infinite branches, the
+  universal resolving algorithm is not guaranteed to terminate.
 
   Generation of process trees by driving is a technique that
   originates from the field of
@@ -59,6 +56,14 @@
   finite representation, which still represents all possible
   configurations of the program. To our knowledge, the same technique
   has not been applied to the field of inverse interpretation.
+
+  In this paper we investigate how to use generalization in modified
+  version of URA to obtain a closed representation of process
+  trees. Our process trees are no longer perfect, as there are
+  infeasible walks. Our closed representation of process trees might
+  be seen as a simple flow-graph language. Instead of tabulating the
+  output as done in URA, we provide non-deterministic backwards
+  semantics for walking the generated tree to obtain a solution.
 \end{abstract}
 
 \keywords Inverse Interpretation, Generalization, Universal Resolving
@@ -771,8 +776,8 @@ because of generalization.
                   edge from parent [left] {
                     node[right] {$
                       \begin{array}{l}
-                        x \leq Xe_2 \\
-                        y \leq \texttt{['S, y]}
+                        x \gen Xe_2 \\
+                        y \gen \texttt{['S, y]}
                       \end{array}$}
                   }
                 }
