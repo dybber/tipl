@@ -8,6 +8,7 @@
 \usepackage{semantic}
 \usepackage{amsthm}
 \usepackage{tikz}
+\usepackage{algorithmic}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
 \title{To Trim a Perfect Process Tree}
@@ -650,6 +651,66 @@ where
 \end{align*}
 \end{definition}
 
+For example, if we have nodes $\alpha,\beta \in \dom(t)$ for some tree
+$t$, with $t_\mathcal{L}(\alpha) = \texttt{let $\emptyset$ in $f
+  ~\widehat{xs}$}$ and $t_\mathcal{L}(\beta) = \texttt{let $\emptyset$
+  in $f [a, as]$}$, with $\alpha$ being an ancestor of $\beta$, we are
+not able to stop driving when reaching the node $\beta$, because
+$t_\mathcal{L}(\beta)$ is larger than $t_\mathcal{L}(\alpha)$, and
+therefore not a renaming. To solve this, we replace $t$ by $t' = {\rm
+  abstract}(t, \beta, \alpha)$, which will replace $\beta$ with a node
+with $\widehat{\mathcal{L}}$-label $\texttt{let $\widehat{xs}$ = $[a,
+  as]$ in $f~\widehat{xs}$}$. This node can be driven using the
+deterministic \textsc{Let-Proper} rule, resulting in a node with a
+non-proper $\widehat{\mathcal{L}}$ label which is a renaming (with
+$\theta = \emptyset$) of $t_\mathcal{L}(\alpha)$, and driving can
+therefore be stopped.
+
+Applying abstractions introduce \emph{expansions} in the process tree,
+by the \textsc{Let-Proper} rule. An expansion specifies what
+information was ``hidden'' by an abstraction, making it possible to
+reconstruct this information when tabulating in a forward manner. When
+doing a backwards search from a given output value, expansions are
+used to tear down the structure of the output value when inferring the
+possible input values.
+
+\subsection{Criteria for generalization}
+The ${\rm abstract}$ operation can be applied whenever a C-term is an
+instance of some other C-term. Generalizing too often may be
+undesirable, since it may lead to larger process trees, and it
+therefore remains to specify \emph{when} to generalize.
+
+In supercompilation\cite{sorensen1998introduction} this problem can be
+solved using the \emph{homeomorphic embedding} relation $<|$, since
+for any infinite sequence $\widehat{t_1}, \widehat{t_2}, ...$ of
+terms, there is guaranteed to be $\widehat{t_i} <| \widehat{t_j}$ for
+$i < j$. The homeomorphic embedding relation on C-terms is the
+smallest relation satisfying the rules defined in Figure
+\ref{fig:embedding}.
+
+\subsection{Tracing algorithm}
+The final tracing algorithm can be seen below. We say that a tree $t$
+is \emph{closed} when all leaves in $t$ are processed.
+\begin{algorithmic}
+  \STATE {\bf input} $[\widehat{e_1}, ..., \widehat{e_n}) \in \widehat{\mathcal{E}}^\star$
+  \STATE $t\gets (\kappa_{id}, \texttt{let $\emptyset$ in $main~\widehat{e_1}~...~\widehat{e_n}$})\rightarrow$
+  \WHILE{$t$ is not closed}
+    \STATE $\beta\gets\text{an unprocessed leaf node in $t$}$
+    \STATE $A\gets\{ \alpha\in\anc(t,\beta) ~|~ \alpha\text{ not proper}, t(\alpha) \not<| t(\beta)  \}$
+    \IF{$A = \emptyset$}
+      \STATE $drive(t,\beta)$
+    \ELSE
+      \STATE {\bf let }$\alpha \in A$
+      \IF{$t_\mathcal{L}(\alpha) \gen t_\mathcal(\beta)$}
+       \STATE $t\gets {\rm abstract}(t,\beta,\alpha)$
+      \ELSIF{$t_\mathcal{L}(\alpha) \leftrightarrow t_\mathcal{L}(\beta)$}
+        \STATE $t\gets {\rm drive}(t,\beta)$
+      \ELSE
+        \STATE $t\gets {\rm abstract}(t,\alpha,\beta)$
+      \ENDIF
+    \ENDIF
+  \ENDWHILE
+\end{algorithmic}
 
 \section{Size-change termination analysis}
 
