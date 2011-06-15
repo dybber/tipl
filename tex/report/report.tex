@@ -76,64 +76,65 @@ Algorithm.
 %\newpage
 
 \section{Introduction}
-Conventionally, when we execute a program, we hand it some an input
-value and after some time it returns with an output. In the field of
-\textit{inverse interpretation}, we seek to reverse this process, by
-handing the same program its output and then finding the possible
-inputs by ``backwards execution''. An \textit{inverse interpreter}
-thus receives a program and some output and calculates the set of
-possible inputs that could give rise to such output. As an example, a
-program \texttt{add} is a function that performs an addition of two
-Peano numerals. When doing normal forward computation we will
-always return a single new result, as in this example:\\
+Conventionally, when we execute a (deterministic) program, we hand it
+an input value and after some time it returns with a single output. In
+the field of \textit{inverse interpretation}, we seek to reverse this
+process, by handing the same program its output and then finding the
+possible inputs by ``backwards execution''. An \textit{inverse
+  interpreter} thus receives a program and some output and calculates
+the set of possible inputs that could give rise to such output. As an
+example, a program \texttt{add} is a function that performs an
+addition of two Peano numerals. When doing normal forward computation
+we will always return a single output (the sum):\\
 
 \begin{tabular}{l}
 \texttt{Add ['S, ['S, 'Z]] ['S, 'Z]} \\
 \quad $=>$ \texttt{['S, ['S, ['S, 'Z]]]}
 \end{tabular}\\
 
-When we want to use URA to do inverse computation on this function, we
-hand it the output together with a specification of the structural
-form of the input:\\
+When we want to execute this function with an inverse interpreter (in
+this case \texttt{ura}), we hand it the output together with a
+specification of the structural form of the input:\\
 
 \begin{tabular}{l}
   \texttt{ura Add [$X_1$, $X_2$] ['S, ['S, ['S, 'Z]]]} \\
-   \quad $=>$ \textit{value pairs which adds up to three}.
+   \quad $=>$ \textit{all pairs which adds up to three}.
 \end{tabular}\\
 
 In this case we do not provide any structure on the input, but specify
-the input as one meta variable for each argument. A solution to the
+one unrestricted meta variable for each argument. A solution to the
 problem is an assignment of the meta variables $X_1$ and $X_2$, such
 that the output is \verb|['S, ['S, ['S, 'Z]]]|. As addition is not
-injective (several value pairs gives the same sum), there might be
-several solutions to the problem. The universal resolving algorithm
-will compute all possible substitutions of such meta variables, that
-will give rise to the output. It is in this sense that the algorithm
-is universal. An existential algorithm would only return with a single
-input value.
+injective, there will be several solutions to the problem. 
 
-For a last example, we might try to specify some structure on one of
-the inputs:\\
+The \textit{universal resolving algorithm} for inverse interpretation
+will compute all possible assignments of meta variables, that will
+give rise to the requested output. It is in this sense that the
+algorithm is universal. An existential algorithm would only return
+with a single input value.
+
+As another last example, we might try to specify some structure on one
+of the inputs:\\
 
 \begin{tabular}{l}
   \texttt{ura Add [$X_1$, [S', 'Z]] ['S, ['S, ['S, 'Z]]]} \\
-   \quad $=>$ \textit{value pairs which adds up to three}.
+   \quad $=> \{ X_1 |-> \texttt{['S, ['S, 'Z]]} \}$
 \end{tabular}\\
 
-Here we specify that the second argument must be \verb|[S', 'Z]|. In
-this case there are only one substitution of $X_1$ which is a
-solution. This is always the case for injective functions and the
-addition of a constant is injective.
+Here we specify that the second argument must be \verb|[S', 'Z]| and
+the result is a single substitution of $X_1$, no other solutions
+exists. This is always the case for injective functions, and the
+function that adds a constant to its argument is injective.\\
 
-\textit{Remark.} The universal algorithm is made for inverse
+\textit{Remark.} The universal resolving algorithm is made for inverse
 interpretation, but it can also be used for the problem of
-\textit{program inversion}. Using a the Futamura-projections, a
-\textit{program inverter} can be obtained from the program
+\textit{program inversion}. Using a program specializer, a
+\textit{program inverter} can be obtained from the inverse
 interpreter. This is much related to how a compiler can be obtained
-from an interpreter through the use of a partial evaluator. The exact
+from an interpreter by applying the Futamura projections. The exact
 way this is done, is shown in the paper ``The Principles of the
 Universal Resolving Algorithm'' \cite{abramov2000universal}. In the
-rest of this paper we only discuss \textit{inverse interpretation}.
+rest of this paper we only discuss \textit{inverse interpretation}.\\
 
 The rest of the paper is organized as follows. In Section
 \ref{sec:ura} and Section \ref{sec:supercompilation} we informally
@@ -738,7 +739,8 @@ where
 When executing our Closed URA on the addition example in Section
 \ref{sec:trfl}, Figure \ref{fig:addprog}, we obtain the process tree
 on Figure \ref{fig:addtree}. The dashed edge is a back-edge introduced
-because of generalization.
+by after a generalization step (the edge is implicit in our
+representation of trees).
 
 \begin{figure*}
   \centering
