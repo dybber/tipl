@@ -43,13 +43,12 @@
     Algorithm}\cite{abramov2000universal} is an algorithm for inverse
   interpretation, based on the notion of a \textit{perfect process
     tree} \cite{gluck1993occam} for representing the possible traces
-  of a program. Such process trees can possibly have an infinite
+  of a program. Such process trees can have an a infinite
   representation, and thus the universal resolving algorithm is not
   guaranteed to terminate.
 
-  In this paper we investigate how to obtain a finite, closed
-  representation of process trees useful in the universal resolving
-  algorithm.
+  In this paper we investigate how to obtain a closed representation
+  of process trees useful in the universal resolving algorithm.
 
   Generation of process trees by driving is a technique that
   originates from the field of
@@ -78,44 +77,70 @@ handing the same program its output and then finding the possible
 inputs by ``backwards execution''. An \textit{inverse interpreter}
 thus receives a program and some output and calculates the set of
 possible inputs that could give rise to such output. As an example, a
-program \texttt{substring} is a function that determines whether its
-first argument is a sublist of its second argument. When doing normal
-forward computation we will always return a single boolean result, as
-in these examples:
-\begin{align*}
-& \texttt{sublist ['o, ['o, 'nil]] ['f, ['o, ['o, 'nil]]]} \\
-& \quad => \texttt{'true} \\
-& \texttt{sublist ['b, ['a, 'nil]] ['f, ['o, ['o, 'nil]]]} \\
-& \quad => \texttt{'false}
-\end{align*}
+program \texttt{add} is a function that performs an addition of two
+Peano numerals. When doing normal forward computation we will
+always return a single new result, as in this example:\\
+
+\begin{tabular}{l}
+\texttt{Add ['S, ['S, 'Z]] ['S, 'Z]} \\
+\quad $=>$ \texttt{['S, ['S, ['S, 'Z]]]}
+\end{tabular}\\
+
 When we want to use URA to do inverse computation on this function, we
 hand it the output together with a specification of the structural
-form of the input.
-\begin{align*}
-  &\texttt{ura sublist ($X_1$, ['f, ['o, ['o, 'nil]]]) 'true} \\
-  & => \textit{all sublists of ``foo''}
-\end{align*}
-In this case \texttt{($X_1$, ['f, ['o, ['o, 'nil]]])} serve as a
-specification of the possible input arguments and \texttt{'true}
-specifies the output. Here the second argument is fixed to the list
-representing ``foo'', but we only specify some metavariable as the
-input for the first argument. A solution from URA will compute all
-possible substitutions of such metavariables that will give rise to
-the output \texttt{'true}. It is in this sense that the algorithm is
-universal. An existential algorithm would just find a single input
-value.
+form of the input:\\
 
-The universal algorithm is made for inverse interpretation, but it can
-also be used for the problem of \textit{program inversion}. Using a
-self-interpreter and the Futamura-projections, a \textit{program
-  inverter} can be obtained from the program interpreter. This is much
-related to how a compiler can be obtained from an interpreter through
-the use of a partial evaluator. The exact way this is done, is shown
-in the paper ``The Principles of the Universal Resolving Algorithm''
-\cite{abramov2000universal}.
+\begin{tabular}{l}
+  \texttt{ura Add [$X_1$, $X_2$] ['S, ['S, ['S, 'Z]]]} \\
+   \quad $=>$ \textit{value pairs which adds up to three}.
+\end{tabular}\\
 
+In this case we do not provide any structure on the input, but specify
+the input as one meta variable for each argument. A solution to the
+problem is an assignment of the meta variables $X_1$ and $X_2$, such
+that the output is \verb|['S, ['S, ['S, 'Z]]]|. As addition is not
+injective (several value pairs gives the same sum), there might be
+several solutions to the problem. The universal resolving algorithm
+will compute all possible substitutions of such meta variables, that
+will give rise to the output. It is in this sense that the algorithm
+is universal. An existential algorithm would only return with a single
+input value.
+
+For a last example, we might try to specify some structure on one of
+the inputs:\\
+
+\begin{tabular}{l}
+  \texttt{ura Add [$X_1$, [S', 'Z]] ['S, ['S, ['S, 'Z]]]} \\
+   \quad $=>$ \textit{value pairs which adds up to three}.
+\end{tabular}\\
+
+Here we specify that the second argument must be \verb|[S', 'Z]|. In
+this case there are only one substitution of $X_1$ which is a
+solution. This is always the case for injective functions and the
+addition of a constant is injective.
+
+\textit{Remark.} The universal algorithm is made for inverse
+interpretation, but it can also be used for the problem of
+\textit{program inversion}. Using a the Futamura-projections, a
+\textit{program inverter} can be obtained from the program
+interpreter. This is much related to how a compiler can be obtained
+from an interpreter through the use of a partial evaluator. The exact
+way this is done, is shown in the paper ``The Principles of the
+Universal Resolving Algorithm'' \cite{abramov2000universal}. In the
+rest of this paper we only discuss \textit{inverse interpretation}.
+
+The rest of the paper is organized as follows. In Section
+\ref{sec:ura} and Section \ref{sec:supercompilation} we informally
+introduce the Universal Resolving Algorithm and certain concepts from
+Supercompilation. Section \ref{sec:trfl} we define the language we
+want to study. In Section \ref{sec:closed-ura} we present our
+algorithm our modified version of URA, that obtains a process tree
+with finite representation.
+
+% Mention where the implementation is available
 
 \section{Universal resolving algorithm}
+\label{sec:ura}
 This section serves as a short, informal introduction to the Universal
 Resolving Algorithm as explained in \cite{abramov2000universal,
   abramov2002universal, abramov2002principles}. We will not go into
@@ -187,6 +212,7 @@ process tree is perfect, it can not be finite. This will be detailed
 in following sections.
 
 \section{Supercompilation}
+\label{sec:supercompilation}
 In supercompilation, one wishes to obtain more efficient programs by
 observing their execution and generating new programs with equivalent
 functionality. For instance two functions that operate independently,
@@ -204,15 +230,16 @@ resolving algorithm has been inspired by the techniques from
 supercompilation \cite{abramov2002principles}.
 
 \subsection{Generalization}
-As the output of supercompilation is a new program, the process trees
-generated must be kept finite to guarantee termination. Alternatively,
-the generated program would also be infinite. The process tree is made
-finite by interleaving normal driving steps that generates the tree,
-with steps that decides whether a back edge can be made to a previous
-equivalent expression in an ancestor node. This is still not enough to
-guarantee termination, as there are examples where the program
-iterates for ever, but continues to build up larger and larger
-expressions, thus never finding a place to add a back edge.
+The output of supercompilation is a new program, thus the process
+trees generated must be kept finite to guarantee
+termination. Alternatively, the generated program would also be
+infinite. The process tree is made finite by interleaving normal
+driving steps that generates the tree, with steps that decides whether
+a back edge can be made to a previous equivalent expression in an
+ancestor node. This is still not enough to guarantee termination, as
+there are examples where the program iterates for ever, but continues
+to build up larger and larger expressions, thus never finding a place
+to add a back edge.
 
 This problem is solved by adding generalizing steps. Instead of
 checking that a \textit{renaming} of the expression occurs as an
@@ -222,6 +249,7 @@ generalised expression of the node and the ancestor is made, such they
 both are instances of the new general node.
 
 \section{Subject Language}
+\label{sec:trfl}
 In this paper we will study a small syntactically typed functional
 language, that draws inspiration from both the language studied in
 \cite{sorensen1998introduction} and the S-Graph language as defined in
@@ -247,15 +275,14 @@ expressions. Atomic expressions, $ea \in \mathcal{A}$, can range over
 only \textit{atoms} (which are prefixed with an apostrophe, such as
 the symbol \texttt{'coffee}) and atomic variables $\texttt{.}x \in
 \mathcal{A}$. This distinction between atomic variables
-($\texttt{.}x$ and expressions variables $x$ serves as a simply type
-system. A conditional can only compare atomic variables and the only
+($\texttt{.}x$) and expression variables ($x$) serves as a simply type
+system. A conditional can only compare atomic values and the only
 comparison allowed is equality testing.
 
 Ordinary expressions, can in addition to being atomic expressions, use
 a \textit{cons}-operation to form pairs of values. These can be used
 to construct lists, trees or other data-structures, as well as be used
-for number-representation (Peano-numbers).
-
+for number-representation (Peano numerals).
 
 \begin{figure}\centering
   \begin{align*}
@@ -276,6 +303,21 @@ for number-representation (Peano-numbers).
   \caption{Syntax of TRFL.}
 \label{fig:bnf}
 \end{figure}
+
+As an example of how the syntax is used, the addition program
+mentioned in the introduction is shown in Figure \ref{fig:addprog}.
+
+\begin{figure}
+  \centering
+\begin{verbatim}
+fun Add [s, ss] y = Add ss ['S, y]
+  | Add .z y = if .z == 'Z then y
+               else 'error-unknown-symbol
+\end{verbatim}
+  \caption{Addition in TRFL}
+  \label{fig:addprog}
+\end{figure}
+
 
 \subsection{Value-classes}
 Values in our language can either be \textit{atoms} or pairs of
@@ -703,16 +745,14 @@ where
   \begin{equation}
     \nfrac{
       ea_1/ \sigma = ea_2/\sigma \quad
-      \sigma |-_\Gamma t_1 => v_1
     }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_1
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => (t_1, \sigma)
     }
     \qquad
     \nfrac{
       ea_1/ \sigma \neq ea_2/\sigma \quad
-      \sigma |-_\Gamma t_2 => v_2
     }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => v_2
+      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => (t_2, \sigma)
     } \tagsc{If}
 \end{equation}
 
@@ -726,10 +766,10 @@ where
         \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
       e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
-      \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+      \sigma' = \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} 
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => (t_1, \sigma')
   }
 \qquad
   \nfrac{
@@ -739,25 +779,11 @@ where
         \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
         \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
-      e_0/\sigma = \texttt{'}s \\
-      \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_1 => v_1
+      \sigma' = \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\}
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => v_1
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => (t_2, \sigma')
   }
-  % \nfrac{
-  %   \begin{array}{c}
-  %     \Gamma(\textit{gname}) =
-  %     \begin{array}{l}
-  %       \texttt{fun \textit{\rmfamily gname} [$x_1$, $x_2$] $x_3$ $\ldots$ $x_n$ = $t_1$} \\
-  %       \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{.7cm} $x_3'$ $\ldots$ $x_n'$ = $t_2$} \\
-  %     \end{array} \\
-  %     e_1/\sigma = \texttt{'$s$} \\
-  %     \sigma\{\texttt{.}x |-> \texttt{'}s, x_3' |-> e_2/\sigma, \ldots, x_n' |-> e_n/\sigma\} |-_\Gamma t_2 => v_2
-  %   \end{array}
-  % }{
-  %   \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_1$ $e_2$ $\ldots$ $e_n$} => v_2
-  % }
   \tagsc{Call-G}
 \end{equation}
 
@@ -767,10 +793,10 @@ where
       \Gamma(\textit{fname}) =
         \texttt{fun \textit{\rmfamily fname} $x_1$ $x_2$ $\ldots$ $x_n$ = $t$}
         \\
-      \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} |-_\Gamma t => v
+      \sigma' = \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} 
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => v
+    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => (t, \sigma')
   } \tagsc{Call-F}
 \end{equation}
 
