@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{semantic}
 \usepackage{amsthm}
+\usepackage{tikz}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
 \title{To Trim a Perfect Process Tree}
@@ -61,13 +62,13 @@
 
 \keywords Inverse Interpretation, Generalization, Universal Resolving
 Algorithm.
-\begin{center}
-  \vspace{0.5cm}
-  \includegraphics[width=0.6\columnwidth]{../figures/pruning.pdf}
-  \vspace{0.5cm}
-\end{center}
+% \begin{center}
+%   \vspace{0.5cm}
+%   \includegraphics[width=0.6\columnwidth]{../figures/pruning.pdf}
+%   \vspace{0.5cm}
+% \end{center}
+%\newpage
 
-\newpage
 \section{Introduction}
 Conventionally, when we execute a program, we hand it some an input
 value and after some time it returns with an output. In the field of
@@ -685,6 +686,65 @@ infinitely increasing terms.
 \label{fig:embedding}
 \end{figure*}
 
+\section{Examples}
+\subsection{Addition}
+When executing our Closed URA on the addition example in Section
+\ref{sec:trfl}, Figure \ref{fig:addprog}, we obtain the process tree
+on Figure \ref{fig:addtree}. The dashed edge is a back-edge introduced
+because of generalization.
+
+\begin{figure*}
+  \centering
+
+\begin{tikzpicture}
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[vtx] (N2)  {\texttt{Add x y}} [->]
+            child [sibling distance=6cm, level distance=1cm] {
+                node[vtx] (N3)  {\texttt{if ...}}
+                    child [sibling distance=3cm, level distance=1.5cm] {
+                        node[leaf] (N4)  {\texttt{'err}}
+                        edge from parent {
+                          node[left] {$Xa_1\ \#\ \texttt{'Z}$}
+                        }
+                    }
+                    child [sibling distance=3cm, level distance=1.5cm]{
+                        node[leaf] (N5)  {\texttt{y}}
+                        edge from parent {
+                          node[right] {$Xa_1 \mapsto \texttt{'Z}$}
+                        }
+                    }
+                    edge from parent {
+                      node[left] {$x \mapsto Xa_1\quad$}
+                    }
+            }
+            child [sibling distance=7cm, level distance=1cm]{
+                node[vtx] (N6)  {
+                  $\begin{array}{l}
+                    \texttt{let x = $Xe_2$, y = ['S, y]} \\
+                    \texttt{in Add x y}
+                  \end{array}$
+                }
+                child [level distance=2cm] {
+                  node[vtx] (N7) {
+                    \texttt{Add x y}
+                  }
+                  edge from parent [left] {
+                    node[right] {$
+                      \begin{array}{l}
+                        x \leq Xe_2 \\
+                        y \leq \texttt{['S, y]}
+                      \end{array}$}
+                  }
+                }
+    }
+;
+
+\draw [dashed,->] (N7) .. controls +(left:3cm) .. (N2);
+\end{tikzpicture}
+  \caption{Closed process tree for addition}
+  \label{fig:addtree}
+\end{figure*}
 
 \section{Future Work}
 \subsection{Size-change termination analysis}
