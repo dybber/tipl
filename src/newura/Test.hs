@@ -26,25 +26,27 @@ expD str = (expP str) ./ ([] :: [(Var P, Exp D)])
 expC :: String -> Exp C
 expC = fromRight . parseExp
 
-doGraph :: String -> [Exp C] -> IO ()
+doGraph :: String -> [Exp C] -> IO String
 doGraph str ds = do
   ep <- parseProgramFile str
   let clsin = (ds, [])
   case ep of
     Left e -> error $ show e
-    Right p -> putStrLn $ printGraph $ ppt p clsin
+    Right p -> return $ printGraph $ ppt p clsin
 
-doNfa :: String -> [Exp C] -> IO ()
+doNfa :: String -> [Exp C] -> IO String
 doNfa str ds = do
   ep <- parseProgramFile str
   let clsin = (ds, [])
   case ep of
     Left e -> error $ show e
-    Right p -> putStrLn $ printNFA $ ppt p clsin
+    Right p -> return $ printNFA $ ppt p clsin
 
 main :: IO ()
 main = do
-  [p] <- getArgs
-  doGraph p ins
-  doNfa p ins
+  [p, f1, f2] <- getArgs
+  gr <- doGraph p ins
+  nfa <- doNfa p ins
+  writeFile f1 gr
+  writeFile f2 nfa
     where ins = [expC ("Xin" ++ (show v)) | v <- [1..] :: [Integer]]

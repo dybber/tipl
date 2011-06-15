@@ -6,6 +6,7 @@
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
 \usepackage{semantic}
+\usepackage{amsthm}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
 \title{To Trim a Perfect Process Tree}
@@ -25,11 +26,13 @@
 \mathlig{<<}{\langle}
 \mathlig{>>}{\rangle}
 \newcommand{\dom}{\ensuremath{{\rm dom}}}
+\newcommand{\anc}{\ensuremath{{\rm anc}}}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
 % Small-caps tags
 \newcommand{\tagsc}[1]{\tag{\scshape #1}}
+\newtheorem{definition}{Definition}
 
 \begin{document}
 \maketitle
@@ -347,10 +350,11 @@ for details).
 
 By $\dom(t)$ we denote the set of nodes in tree $t$, and by
 $t(\alpha)$ we denote the label at node $\alpha$. ${\rm anc}(t,
-\alpha)$ denotes the set of ancestors for node $\alpha$ in tree $t$,
-and for some $\alpha \in \dom(t)$, $t\{\alpha := t'\}$ denotes the
-tree obtained from $t$ by replacing the subtree rooted at node
-$\alpha$ with $t'$.
+\alpha)$ denotes the set of ancestors for node $\alpha$ in tree
+$t$. By $\anc(t, \alpha)$ we denote the set of nodes that are
+ancestors to $\alpha$ in $t$, and for some $\alpha \in \dom(t)$,
+$t\{\alpha := t'\}$ denotes the tree obtained from $t$ by replacing
+the subtree rooted at node $\alpha$ with $t'$.
 
 The tree $e \rightarrow e_1, ..., e_n$ is the tree with root labeled
 $e$ and children labeled $e_1, ..., e_n$.
@@ -367,15 +371,18 @@ between C-terms. Each transition is associated with a
 be satisfied for the program to reach the given destination state.
 
 A process tree is a tree $t$ with labels over $\mathcal{K} \times
-\widehat{\mathcal{L}}$. When building the process tree for a given
-program, we start with the tree $(\kappa_{id}, \widehat{t_0})
-\rightarrow$ consisting of a single node with the initial program
-state $\widehat{t_0}$ as label. Using the trace semantics, we
-iteratively add child nodes, creating branches when multiple rules
-apply at the same time. By ${\rm drive}(t, \alpha)$ we denote the tree
-obtained by exhaustively applying the tracing rules on the state in
-$t(\alpha)$, adding the resulting constraction/state pairs as child
-nodes to $\alpha$.
+\widehat{\mathcal{L}}$. For brevity, we write $t_\mathcal{L}(\alpha)$
+for the $\widehat{\mathcal{L}}$-part of $t(\alpha)$ and
+$t_\mathcal{K}(\alpha)$ for the $\mathcal{K}$-part. When building the
+process tree for a given program, we start with the tree
+$(\kappa_{id}, \widehat{t_0}) \rightarrow$ consisting of a single node
+with the initial program state $\widehat{t_0}$ as label. Using the
+trace semantics, we iteratively add child nodes, creating branches
+when multiple rules apply at the same time. For a tree $t$ and a leaf
+node $\alpha \in \dom(t)$, we write ${\rm drive}(t, \alpha)$ to denote
+the tree obtained by exhaustively applying the tracing rules on
+$t_\mathcal{L}(\alpha)$, adding the resulting constraction/state pairs
+as child nodes to $\alpha$.
 
 
 \begin{figure*}
@@ -471,13 +478,63 @@ nodes to $\alpha$.
     } \tagsc{Call}
   \end{equation}
 
+  ~\newline
+
+  \begin{equation}
+    \nfrac{
+      |-_\Gamma \widehat{t} => << \kappa, \widehat{t'} >>
+    }{
+      |-_\Gamma \texttt{let $\emptyset$ in $\widehat{t}$} => <<\kappa, \texttt{let $\emptyset$ in $\widehat{t'}$}>>
+    } \tagsc{Let-NonProper}
+  \end{equation}
+
+  \begin{equation}
+    \nfrac{
+     L = \texttt{$\widehat{X_1}$ = $\widehat{e_1}$; $...$; $\widehat{X_n}$ = $\widehat{e_n}$}
+    }{
+      |-_\Gamma \texttt{let $L$ in $\widehat{t}$} => <<\kappa, \texttt{let $\emptyset$ in $\widehat{t'}$} >>
+    } (n > 0) \tagsc{Let-Proper}
+  \end{equation}
+
   \caption{Trace semantics}
   \label{fig:tracing}
 \end{figure*}
 
 
-\subsection{Closed trees}
-In order to ensure that the resulting process tree is finite, we
+\subsection{Closed process trees}
+Iteratively driving the leaves of a process tree until there are no
+more leaf nodes for which the trace rules apply, will not guarantee
+termination. In order to ensure termination, we must employ some kind
+of stop criterion to prevent our algorithm from going on indefinitely,
+while still ensuring that all possible control flows are represented
+in the process tree.
+
+\begin{definition}
+  For some tree $t$ and leaf node $\alpha \in \dom(t)$, we say that
+  $\alpha$ is \emph{processed} if $t_\mathcal{L}(\alpha)$ is not
+  proper and at least one of the following is true:
+  \begin{enumerate}
+    \item $t_\mathcal{L}(\alpha) = \widehat{e}$ ~~ ($\alpha$ is a terminal node), or
+    \item There exists some $\beta \in \anc(t, \alpha)$ such that
+      $t_\mathcal{L}(\alpha)$ is a renaming of $t_\mathcal{L}(\beta)$,
+      with preservation of variable types.
+  \end{enumerate}
+\end{definition}
+If a node is processed, the algorithm will stop driving and proceed to
+processing other leaf nodes until all nodes are processed.
+
+The above stop criterion is sound with regards to ensuring that the
+resulting process tree covers all possible control flows of the
+program. Since we define renaming up to preservation of variable
+types, and because we do not propagate negative information, driving
+two nodes $\alpha, \beta \in \dom(t)$ where $t_\mathcal{L}(\alpha)$ is
+a renaming of $t_\mathcal{L}(\beta)$ and $\alpha$ is a descendent of
+$\beta$, will yield isomorphic process trees, up to renaming of
+variables.
+
+Using the above stop criterion alone will not ensure that the tracing
+algorithm terminates in all cases, since it will fail to stop on
+infinitely increasing terms.
 
 
 \section{Size-change termination analysis}
