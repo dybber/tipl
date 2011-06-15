@@ -7,10 +7,12 @@
 \usepackage{graphicx}
 \usepackage{semantic}
 \usepackage{amsthm}
+
 \usepackage{tikz}
+\usetikzlibrary{shapes}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
-\title{To Trim a Perfect Process Tree}
+\title{A closed process tree for inverse interpretation}
 %\subtitle{Subtitle Text, if any}
 \authorinfo{Martin Dybdal}
            {dybber@dybber.dk}
@@ -41,7 +43,7 @@
 
 \begin{abstract}
   The \textit{Universal Resolving
-    Algorithm}\cite{abramov2000universal} is an algorithm for inverse
+    Algorithm} \cite{abramov2000universal} is an algorithm for inverse
   interpretation, based on the notion of a \textit{perfect process
     tree} \cite{gluck1993occam} for representing the possible traces
   of a program. Such process trees can have an a infinite
@@ -66,8 +68,10 @@
   semantics for walking the generated tree to obtain a solution.
 \end{abstract}
 
-\keywords Inverse Interpretation, Generalization, Universal Resolving
-Algorithm.
+% \keywords Inverse Interpretation, Generalization, Universal Resolving
+% Algorithm.
+
+
 % \begin{center}
 %   \vspace{0.5cm}
 %   \includegraphics[width=0.6\columnwidth]{../figures/pruning.pdf}
@@ -162,12 +166,11 @@ possible execution paths of the program, to obtain a \textit{process
 specification of the shape of input values. Such a specification is
 called an \textit{input class}. In the most general case, this
 input-class can be specified as all possible values. This done by
-specifying a single meta-variable for each argument, with out any
-further restrictions. It can often be desirable to restrict the set of
+specifying a single unrestricted meta-variable for each argument. To
+get a finite answer it can often be desirable to restrict the set of
 possible inputs to a certain form, such as ``a three element list of
 values''. This can be done by specifying that the input is such a
-list, with a new meta-variables at each position in the list. Such
-restrictions can be useful to force a finite answer from URA. 
+list, with a new meta-variables at each position in the list. 
 
 Tracing is conducted by stepping through the semantics of the
 language, creating a new node for each step. Because we have an
@@ -177,14 +180,61 @@ each possibility and tag each of the edges with the conditions on the
 input that should hold to follow them. These conditions are named
 \textit{contractions} on the input class.
 
-To summarize, a node in a process tree represents a point of
-evaluation of the program. The contractions found on the path from the
-root down to a node, represents the conditions on the input that must
-hold for this path to be followed. The terminal nodes (leafs) in the
-process tree represents the output returned by following the path from
-root to leaf.
+To summarize, a node in a process tree of a program, represents an
+evaluation step. The contractions found on the path from the root down
+to a node, represents the conditions on the input that must hold for
+this path to be followed on forward evaluation. The terminal nodes
+(leafs) in the process tree represents the output returned by
+following the path from root to leaf.
 
-% example ?
+A process tree might be infinite, even when program is always
+terminating. Such infinite trees occurs for loops where the number of
+executions is determined by the input size.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+\tikzstyle{square}=[fill=red!25,minimum size=12pt]
+\tikzstyle{triangle}=[regular polygon,regular polygon sides=3, fill=blue!25,minimum size=12pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[square] (N1) {} [->]
+            child [level distance=0.6cm] {
+                node {}
+            }
+            child [level distance=0.6cm] {
+              node[triangle]  {}
+              child {
+                node {}
+              }
+              child  {
+                node[square] { }
+                child {
+                  node {}
+                }
+                child {
+                  node[triangle] {}
+                  child {
+                    node {}
+                  }
+                  child  {
+                    node[square] (N7) { }
+                    child {
+                      node {}
+                    }
+                    child {
+                      node {$\ddots$}
+                    }
+                  }
+                }
+              }
+            }
+;
+%\draw [dashed,->] (N7) .. controls +(right:2cm) and +(up:1cm).. (N1);
+\end{tikzpicture}
+
+  \caption{Infinite tree}
+  \label{fig:inftree}
+\end{figure}
 
 \subsection{Tabulation}
 On the basis of the process tree, the relationships between inputs and
@@ -193,17 +243,20 @@ root to each leaf. The contractions found on the path down to this
 leaf, are conditions on the input, that should hold for program to
 return the output stored in the node.
 
-Tabulation is the process of walking the tree and for each output
-(represented by a leaf) write down the associated conditions that
-should be obeyed by the input.
+Tabulation is the process of walking the tree and for each leaf write
+down the associated conditions that should be obeyed by the input, to
+obtain the output.
+
+As the process tree can be infinite, this table of input-output pairs
+can be infinite as well.
 
 \subsection{Inversion}
 The final step of URA is to extract the answers for a given output
-from the table of input/output pairs, to obtain the set of
+from the table of input-output pairs, to obtain the set of
 corresponding input values. The desired output given as argument to
 URA is unified with each output class in the table, the resulting
-replacement is then applied to relevant input-specification and the
-set of contractions is checked for contradictions.
+substitution is then applied to the relevant input-specification and
+the set of contractions is checked for contradictions.
 
 \subsection{Perfect Process Trees}
 A \textit{perfect} process tree \cite{gluck1993occam}, is a process
@@ -211,15 +264,43 @@ tree without any infeasible paths. A path is infeasible if there is no
 input such that the path is taken. The universal solving algorithm
 always constructs perfect process trees, as branches are only created
 in the tree if no contradictions between contractions occur along the
-path from the root and splits in the tree are perfect, in the sense
-that an input value only gives rise to a single path through the
-tree. We will show how to obtain a finite representation of a process
-tree, but in doing so, we will discard perfectness. In general, if a
-process tree is perfect, it can not be finite. This will be detailed
-in following sections.
+path from the root and splits in the tree are \textit{perfect
+  splits}. A splits are perfect as long as an input value only gives
+rise to a single path through the tree. We will show how to obtain a
+finite representation of a process tree, but in doing so, we will
+discard perfectness of the process tree. Infeasible walks can
+occur. In general, if a process tree storing negative information is
+perfect, it can not be finite. This will be detailed in Section \ref{}.
 
 \section{Supercompilation}
 \label{sec:supercompilation}
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+\tikzstyle{square}=[fill=red!25,minimum size=12pt]
+\tikzstyle{triangle}=[regular polygon,regular polygon sides=3, fill=blue!25,minimum size=12pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[square] (N1) {} [->]
+            child [level distance=0.6cm] {
+                node {}
+            }
+            child [level distance=0.6cm] {
+              node[triangle]  {}
+              child {
+                node {}
+              }
+              child  {
+                node[square] (N7) { }
+              }
+            }
+;
+\draw [dashed,->] (N7) .. controls +(right:2cm) and +(up:1cm).. (N1);
+\end{tikzpicture}
+\caption{In supercompilation, back-edges are added from nodes that
+  have ancestors of a common shape.}
+  \label{fig:backedge}
+\end{figure}
+
 In supercompilation, one wishes to obtain more efficient programs by
 observing their execution and generating new programs with equivalent
 functionality. For instance two functions that operate independently,
@@ -233,27 +314,24 @@ Supercompilation, like the universal resolving algorithm, makes a
 controlled execution of the program, constructing a process tree of
 the possible edges. In supercompilation, this technique of observing
 the execution of a program is called \textit{driving}. The universal
-resolving algorithm has been inspired by the techniques from
+resolving algorithm has been inspired by the techniques used in
 supercompilation \cite{abramov2002principles}.
 
 \subsection{Generalization}
-The output of supercompilation is a new program, thus the process
-trees generated must be kept finite to guarantee
-termination. Alternatively, the generated program would also be
-infinite. The process tree is made finite by interleaving normal
-driving steps that generates the tree, with steps that decides whether
-a back edge can be made to a previous equivalent expression in an
-ancestor node. This is still not enough to guarantee termination, as
-there are examples where the program iterates for ever, but continues
-to build up larger and larger expressions, thus never finding a place
-to add a back edge.
+In supercompilation the process trees are kept finite. Instead of
+continuously \textit{driving} expressions, the driving steps are
+interleaved with, with steps that decides whether a \textit{back edge}
+can be made to a previous equivalent expression in an ancestor node.
 
-This problem is solved by adding generalizing steps. Instead of
-checking that a \textit{renaming} of the expression occurs as an
-ancestor, the ancestors are checked for another kind of ``similarity''
-(we will detail this later) and if a similar ancestor is found, a
-generalised expression of the node and the ancestor is made, such they
-both are instances of the new general node.
+This is still not enough to guarantee a finite tree, as there are
+examples where the program iterates for ever, but continues to build
+up larger and larger expressions, thus never finding a place to add a
+back edge. This problem is solved by adding \textit{generalizing}
+steps. Instead of checking that a \textit{renaming} of the expression
+occurs as an ancestor, the ancestors are checked for another kind of
+``similarity'' and if a similar ancestor is found, a generalised
+expression of the node and the ancestor is made, such they both are
+instances of the new general node.
 
 \section{Subject Language}
 \label{sec:trfl}
@@ -739,8 +817,16 @@ where
 When executing our Closed URA on the addition example in Section
 \ref{sec:trfl}, Figure \ref{fig:addprog}, we obtain the process tree
 on Figure \ref{fig:addtree}. The dashed edge is a back-edge introduced
-by after a generalization step (the edge is implicit in our
-representation of trees).
+after a generalization step (as explained in Section
+\ref{sec:processed_nodes} the edge is implicit in our representation
+of trees).
+
+% This process tree can be seen as a flow-graph representation of the
+% \texttt{Add} program. At the root node it is determined whether the
+% value stored in $X_{in}$ is an atom (left) or a cons (right). When
+% branching left, we bind $X_{in}$ to a fresh atom
+% meta-variable. Depending of the outcome of the equality test we return
+% an error or the $y$-value. On the right branch we haveIf we instead branch right, we 
 
 \begin{figure*}
   \centering
@@ -748,8 +834,8 @@ representation of trees).
 \begin{tikzpicture}
 \tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
 \tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
-\node[vtx] (N2)  {\texttt{Add x y}} [->]
-            child [sibling distance=6cm, level distance=1cm] {
+\node[vtx] (N2)  {\texttt{Add $X_{in}$ $Y_{in}$}} [->]
+            child [sibling distance=6cm, level distance=1.2cm] {
                 node[vtx] (N3)  {\texttt{if ...}}
                     child [sibling distance=3cm, level distance=1.5cm] {
                         node[leaf] (N4)  {\texttt{'err}}
@@ -758,38 +844,42 @@ representation of trees).
                         }
                     }
                     child [sibling distance=3cm, level distance=1.5cm]{
-                        node[leaf] (N5)  {\texttt{y}}
+                        node[leaf] (N5)  {$Y_{in}$}
                         edge from parent {
                           node[right] {$Xa_1 \mapsto \texttt{'Z}$}
                         }
                     }
                     edge from parent {
-                      node[left] {$x \mapsto Xa_1\quad$}
+                      node[left] {$X_{in} \mapsto Xa_1\quad$}
                     }
             }
-            child [sibling distance=7cm, level distance=1cm]{
+            child [sibling distance=7cm, level distance=1.6cm]{
                 node[vtx] (N6)  {
                   $\begin{array}{l}
-                    \texttt{let x = $Xe_2$, y = ['S, y]} \\
-                    \texttt{in Add x y}
+                    \texttt{let $X_{in}$ = $Xe_2$;} \\
+                    \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+                    \texttt{in Add $X_{in}$ $Y_{in}$}
                   \end{array}$
                 }
                 child [level distance=2cm] {
                   node[vtx] (N7) {
-                    \texttt{Add x y}
+                    \texttt{Add $X_{in}$ $Y_{in}$}
                   }
                   edge from parent [left] {
                     node[right] {$
                       \begin{array}{l}
-                        x \gen Xe_2 \\
-                        y \gen \texttt{['S, y]}
+                        X_{in} \gen Xe_2 \\
+                        Y_{in} \gen \texttt{['S, $Y_{in}$]}
                       \end{array}$}
                   }
+                }
+                edge from parent {
+                  node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
                 }
     }
 ;
 
-\draw [dashed,->] (N7) .. controls +(left:3cm) .. (N2);
+\draw [dashed,->] (N7) .. controls +(left:3cm).. (N2);
 \end{tikzpicture}
   \caption{Closed process tree for addition}
   \label{fig:addtree}
