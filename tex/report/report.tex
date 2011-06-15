@@ -35,14 +35,17 @@
 \maketitle
 
 \begin{abstract}
-  The Universal Resolving Algorithm\cite{abramov2000universal} is an
-  algorithm for inverse interpretation, based on the notion of a
-  perfect process tree for representing the possible traces of a
-  program. A process tree will often have an infinite representation,
-  meaning that inverse interpretation does not always terminate.
+  The \textit{Universal Resolving
+    Algorithm}\cite{abramov2000universal} is an algorithm for inverse
+  interpretation, based on the notion of a \textit{perfect process
+    tree} \cite{gluck1993occam} for representing the possible traces
+  of a program. Such process trees can possibly have an infinite
+  representation, and thus the universal resolving algorithm is not
+  guaranteed to terminate.
 
-  We investigate two methods for minimizing the size of a process tree
-  and representing it in finite form, respectively.
+  In this paper we investigate how to obtain a finite, closed
+  representation of process trees useful in the universal resolving
+  algorithm.
 
   Generation of process trees by driving is a technique that
   originates from the field of
@@ -109,8 +112,8 @@ in the paper ``The Principles of the Universal Resolving Algorithm''
 
 
 \section{Universal resolving algorithm}
-This section serves as a short introduction to the Universal Resolving
-Algorithm as explained in \cite{abramov2000universal,
+This section serves as a short, informal introduction to the Universal
+Resolving Algorithm as explained in \cite{abramov2000universal,
   abramov2002universal, abramov2002principles}. We will not go into
 specific details, as these can be found in the referenced
 papers. Examples of the individual steps can be found in
@@ -185,7 +188,7 @@ observing their execution and generating new programs with equivalent
 functionality. For instance two functions that operate independently,
 might be more efficiently described by composing them into one program
 (program composition). Another example is program specialization,
-where parts of the input is known is advance, and supercompilation can
+where parts of the input is known in advance, and supercompilation can
 be a way of obtaining a more efficient version of the program when
 this information is taken into account.
 
@@ -207,7 +210,12 @@ guarantee termination, as there are examples where the program
 iterates for ever, but continues to build up larger and larger
 expressions, thus never finding a place to add a back edge.
 
-This problem is solved by adding generalizing steps.
+This problem is solved by adding generalizing steps. Instead of
+checking that a \textit{renaming} of the expression occurs as an
+ancestor, the ancestors are checked for another kind of ``similarity''
+(we will detail this later) and if a similar ancestor is found, a
+generalised expression of the node and the ancestor is made, such they
+both are instances of the new general node.
 
 \section{Subject Language}
 In this paper we will study a small syntactically typed functional
