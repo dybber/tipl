@@ -8,6 +8,7 @@
 \usepackage{semantic}
 \usepackage{amsthm}
 \usepackage{todonotes}
+\usepackage{nonfloat}
 
 \usepackage{tikz}
 
@@ -491,12 +492,13 @@ constraints on the meta-variables occurring in the
 \end{figure}
 
 \subsection{Semantics}
-Terms in TRFL are parameterized over an environment $\sigma$ and
-the set of function definitions $\Gamma$. The operational semantics is
-shown in Figure \ref{fig:semantics} using judgement form: $\sigma
-|-_\Gamma t => v$. A judgement of this form should be interpreted as:
-\textit{given environment $\sigma$ and function definitions $\Gamma$,
-  the term $t$ evaluates to the value $v$.}
+Terms in TRFL are parameterized over an environment $\sigma$ and the
+set of function definitions $\Gamma$. The operational semantics is
+shown in Appendix \ref{sec:semantics}, Figure \ref{fig:semantics}
+using judgement form: $\sigma |-_\Gamma t => (t', \sigma')$. A
+judgement of this form should be interpreted as: \textit{given
+  environment $\sigma$ and function definitions $\Gamma$, the term $t$
+  steps to the term $t'$ and environment $\sigma'$.}
 
 \section{Closed URA}
 \label{sec:closed-ura}
@@ -797,31 +799,6 @@ $\widehat{t_i} <| \widehat{t_j}$ for $i < j$. The homeomorphic
 embedding relation on C-terms is the smallest relation satisfying the
 rules defined in Figure \ref{fig:embedding}.
 
-\subsection{Tracing algorithm}
-The final tracing algorithm can be seen below. We say that a tree $t$
-is \emph{closed} when all leaves in $t$ are processed.
-\begin{algorithmic}
-  \STATE {\bf input} $[\widehat{e_1}, ..., \widehat{e_n}) \in \widehat{\mathcal{E}}^\star$
-  \STATE $t\gets (\kappa_{id}, \texttt{let $\emptyset$ in $main~\widehat{e_1}~...~\widehat{e_n}$})\rightarrow$
-  \WHILE{$t$ is not closed}
-    \STATE $\beta\gets\text{an unprocessed leaf node in $t$}$
-    \STATE $A\gets\{ \alpha\in\anc(t,\beta) ~|~ \alpha\text{ not proper}, t(\alpha) \not<| t(\beta)  \}$
-    \IF{$A = \emptyset$}
-      \STATE $\textrm{drive}(t,\beta)$
-    \ELSE
-      \STATE {\bf let }$\alpha \in A$
-      \IF{$t_\mathcal{L}(\alpha) \gen t_\mathcal{L}(\beta)$}
-       \STATE $t\gets {\rm abstract}(t,\beta,\alpha)$
-      \ELSIF{$t_\mathcal{L}(\alpha) \leftrightarrow t_\mathcal{L}(\beta)$}
-        \STATE $t\gets {\rm drive}(t,\beta)$
-      \ELSE
-        \STATE $t\gets {\rm abstract}(t,\alpha,\beta)$
-      \ENDIF
-    \ENDIF
-  \ENDWHILE
-\end{algorithmic}
-
-
 \begin{figure*}\centering
   \begin{equation}
     \nfrac{
@@ -903,20 +880,32 @@ is \emph{closed} when all leaves in $t$ are processed.
 \label{fig:embedding}
 \end{figure*}
 
-\subsection{Forward interpretation}
-The process tree constructed by the above algorithm can be seen as a
-flow-graph description of the original program. We can define the
-\textit{forward} semantics of this flow-graph language, as a state
-machine with transition function $\delta : Q \times
-\mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
-\subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
-process tree. That is, $\delta$ is a function from states and a set of
-edge-labels as well 
 
-The program can then be executed by binding the input variables to values
+\subsection{Tracing algorithm}
+The final tracing algorithm can be seen below. We say that a tree $t$
+is \emph{closed} when all leaves in $t$ are processed.
+\begin{algorithmic}
+  \STATE {\bf input} $[\widehat{e_1}, ..., \widehat{e_n}) \in \widehat{\mathcal{E}}^\star$
+  \STATE $t\gets (\kappa_{id}, \texttt{let $\emptyset$ in $main~\widehat{e_1}~...~\widehat{e_n}$})\rightarrow$
+  \WHILE{$t$ is not closed}
+    \STATE $\beta\gets\text{an unprocessed leaf node in $t$}$
+    \STATE $A\gets\{ \alpha\in\anc(t,\beta) ~|~ \alpha\text{ not proper}, t(\alpha) \not<| t(\beta)  \}$
+    \IF{$A = \emptyset$}
+      \STATE $\textrm{drive}(t,\beta)$
+    \ELSE
+      \STATE {\bf let }$\alpha \in A$
+      \IF{$t_\mathcal{L}(\alpha) \gen t_\mathcal{L}(\beta)$}
+       \STATE $t\gets {\rm abstract}(t,\beta,\alpha)$
+      \ELSIF{$t_\mathcal{L}(\alpha) \leftrightarrow t_\mathcal{L}(\beta)$}
+        \STATE $t\gets {\rm drive}(t,\beta)$
+      \ELSE
+        \STATE $t\gets {\rm abstract}(t,\alpha,\beta)$
+      \ENDIF
+    \ENDIF
+  \ENDWHILE
+\end{algorithmic}
 
-After the process tree has been constructed using the above algorithm,
-the
+
 
 \section{Examples}
 \subsection{Addition}
@@ -1025,9 +1014,15 @@ Further explanation here ...
 \bibliographystyle{abbrvnat}
 \bibliography{../bibliography}
 
+
 \appendix
 \section{TRFL Semantics}
-\begin{figure*}\centering
+\label{sec:semantics}
+
+
+\begin{minipage}{2\linewidth}
+  \centering
+
   \begin{equation}
     \nfrac{
       ea_1/ \sigma = ea_2/\sigma \quad
@@ -1086,9 +1081,16 @@ Further explanation here ...
   } \tagsc{Call-F}
 \end{equation}
 
-
-\caption{Operational Semantics for TSG'}
+\figcaption{Operational Semantics for TRFL.}
 \label{fig:semantics}
+\end{minipage}
+
+
+
+\begin{figure*}\centering
+
+
+
 \end{figure*}
 
 
