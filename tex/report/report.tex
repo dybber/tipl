@@ -906,6 +906,29 @@ is \emph{closed} when all leaves in $t$ are processed.
 \end{algorithmic}
 
 
+\subsection{Forward interpretation}
+The process tree constructed by the above algorithm can be seen as a
+flow-graph description of the original program. We can define the
+\textit{forward} semantics of this flow-graph language, as a state
+machine with transition function $\delta : Q \times
+\mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
+\subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
+process tree. That is, $\delta$ is a function from states and a set of
+edge-labels as well.  A state $q_0 \in Q$ is a designated start state
+and a subset $F \subseteq U$ are terminal nodes. As the process tree
+is finite, these sets are finite as well.
+
+The program can then be executed by binding constructing an
+environment $\sigma$ where the meta variables representing the input
+are bound to concrete values, and then applying the transition
+function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
+state in $F$.
+
+The delta function should be defined as follows: \todo{}
+
+\subsection{Backward interpretation}
+In the case of backward interpretation, we start with an output which
+can originate from one of several terminal nodes in the process tree.
 
 \section{Examples}
 \subsection{Addition}
