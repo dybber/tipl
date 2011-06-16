@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{semantic}
 \usepackage{amsthm}
+\usepackage{todonotes}
 
 \usepackage{tikz}
 
@@ -14,7 +15,7 @@
 \usepackage{algorithmic}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
-\title{A closed process tree for inverse interpretation}
+\title{A finite process tree for inverse interpretation}
 %\subtitle{Subtitle Text, if any}
 \authorinfo{Martin Dybdal}
            {dybber@dybber.dk}
@@ -83,13 +84,13 @@
 
 \section{Introduction}
 Conventionally, when we execute a (deterministic) program, we hand it
-an input value and after some time it returns with a single output. In
-the field of \textit{inverse interpretation}, we seek to reverse this
+an input value and after some time it returns with an output. In the
+field of \textit{inverse interpretation}, we seek to reverse this
 process, by handing the same program its output and then finding the
 possible inputs by ``backwards execution''. An \textit{inverse
   interpreter} thus receives a program and some output and calculates
 the set of possible inputs that could give rise to such output. As an
-example, a program \texttt{add} is a function that performs an
+example, a program \texttt{Add} is a function that performs an
 addition of two Peano numerals. When doing normal forward computation
 we will always return a single output (the sum):\\
 
@@ -99,7 +100,7 @@ we will always return a single output (the sum):\\
 \end{tabular}\\
 
 When we want to execute this function with an inverse interpreter (in
-this case \texttt{ura}), we hand it the output together with a
+this case \texttt{ura}\todo{mention call format}), we hand it the output together with a
 specification of the structural form of the input:\\
 
 \begin{tabular}{l}
@@ -110,8 +111,9 @@ specification of the structural form of the input:\\
 In this case we do not provide any structure on the input, but specify
 one unrestricted meta variable for each argument. A solution to the
 problem is an assignment of the meta variables $X_1$ and $X_2$, such
-that the output is \verb|['S, ['S, ['S, 'Z]]]|. As addition is not
-injective, there will be several solutions to the problem. 
+that the output of \texttt{Add} is \verb|['S, ['S, ['S, 'Z]]]|. As
+addition is not injective, there will be several solutions to the
+problem.
 
 The \textit{universal resolving algorithm} for inverse interpretation
 will compute all possible assignments of meta variables, that will
@@ -145,7 +147,7 @@ rest of this paper we only discuss \textit{inverse interpretation}.\\
 The rest of the paper is organized as follows. In Section
 \ref{sec:ura} and Section \ref{sec:supercompilation} we informally
 introduce the Universal Resolving Algorithm and certain concepts from
-Supercompilation. Section \ref{sec:trfl} we define the language we
+Supercompilation. Section \ref{sec:trfl} defines the language we
 want to study. In Section \ref{sec:closed-ura} we present our
 algorithm our modified version of URA, that obtains a process tree
 with finite representation.
@@ -160,6 +162,8 @@ Resolving Algorithm as explained in \cite{abramov2000universal,
 specific details, as these can be found in the referenced
 papers. Examples of the individual steps can be found in
 \cite{abramov2000universal}.
+
+\subsection{Meta variables}
 
 \subsection{Tracing: Obtaining a Perfect Process Tree}
 The first step of the universal resolving algorithm, is to trace all
@@ -242,12 +246,12 @@ executions is determined by the input size.
 On the basis of the process tree, the relationships between inputs and
 outputs can be obtained by following all paths in the tree, from the
 root to each leaf. The contractions found on the path down to this
-leaf, are conditions on the input, that should hold for program to
+leaf, are conditions on the input, that should hold for the program to
 return the output stored in the node.
 
 Tabulation is the process of walking the tree and for each leaf write
-down the associated conditions that should be obeyed by the input, to
-obtain the output.
+down the input and output, together with the associated conditions
+that should be obeyed by the input, to obtain the output.
 
 As the process tree can be infinite, this table of input-output pairs
 can be infinite as well.
@@ -256,9 +260,10 @@ can be infinite as well.
 The final step of URA is to extract the answers for a given output
 from the table of input-output pairs, to obtain the set of
 corresponding input values. The desired output given as argument to
-URA is unified with each output class in the table, the resulting
-substitution is then applied to the relevant input-specification and
-the set of contractions is checked for contradictions.
+URA is unified with each output class in the table. If unification
+succeeds, the resulting substitution is then applied to the relevant
+input-specification and the set of contractions is checked for
+contradictions.
 
 \subsection{Perfect Process Trees}
 A \textit{perfect} process tree \cite{gluck1993occam}, is a process
@@ -267,12 +272,13 @@ input such that the path is taken. The universal solving algorithm
 always constructs perfect process trees, as branches are only created
 in the tree if no contradictions between contractions occur along the
 path from the root and splits in the tree are \textit{perfect
-  splits}. A splits are perfect as long as an input value only gives
+  splits}. Splits are perfect as long as an input value only gives
 rise to a single path through the tree. We will show how to obtain a
 finite representation of a process tree, but in doing so, we will
-discard perfectness of the process tree. Infeasible walks can
-occur. In general, if a process tree storing negative information is
-perfect, it can not be finite. This will be detailed in Section \ref{}.
+discard perfectness of the process tree (still using perfect
+splits). Infeasible walks can occur. In general, if a process tree
+storing negative information is perfect, it can not be finite. This
+will be detailed in Section \ref{sec:closed-ura}.
 
 \section{Supercompilation}
 \label{sec:supercompilation}
@@ -332,8 +338,8 @@ back edge. This problem is solved by adding \textit{generalizing}
 steps. Instead of checking that a \textit{renaming} of the expression
 occurs as an ancestor, the ancestors are checked for another kind of
 ``similarity'' and if a similar ancestor is found, a generalised
-expression of the node and the ancestor is made, such they both are
-instances of the new general node.
+expression of the node and the ancestor is made, such that they both
+are instances of the new general node.
 
 \section{Subject Language}
 \label{sec:trfl}
@@ -362,7 +368,7 @@ expressions. Atomic expressions, $ea \in \mathcal{A}$, can range over
 only \textit{atoms} (which are prefixed with an apostrophe, such as
 the symbol \texttt{'coffee}) and atomic variables $\texttt{.}x \in
 \mathcal{A}$. This distinction between atomic variables
-($\texttt{.}x$) and expression variables ($x$) serves as a simply type
+($\texttt{.}x$) and expression variables ($x$) serves as a simple type
 system. A conditional can only compare atomic values and the only
 comparison allowed is equality testing.
 
@@ -422,8 +428,8 @@ depending on whether they only contain atoms.
 \label{fig:vbnf}
 \end{figure}
 
-As explained, the result of inverse-computation on non-injective
-functions might result in several input values for one input. The set
+As explained, the result of inverse-computation of non-injective
+functions might result in several input values for one output. The set
 of inputs might even be infinite. We represent these classes of
 inputs, by placing meta-variables in the places where they vary, and
 registering constraints that should be obeyed by these variables.  We
@@ -456,7 +462,8 @@ constraints on the meta-variables occurring in the
     \widehat{\mathcal{X}} \ni \widehat{x} ::= & \widehat{Xe} \tag{C-variable} \\
     | \quad & \widehat{Xa} \\
     \tag{Generalized C-term} \\
-    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{x_1} = \widehat{e_1}$; $...$; $\widehat{x_n} = \widehat{e_n}$ in $\widehat{t}$}
+    \widehat{\mathcal{L}} \ni \widehat{l} ::= & \texttt{let $\widehat{x_1} = \widehat{e_1}$; $...$; $\widehat{x_n} = \widehat{e_n}$ in $\widehat{t}$} \\
+    & \quad \textrm{where}\ n \in \mathbb{N}
   \end{align*}
 
 \caption{Syntax of terms and expressions with meta variables}
@@ -514,8 +521,9 @@ $e$ and children labeled $e_1, ..., e_n$.
 
 \subsection{Building the process tree}
 The trace semantics for TRFL can be seen in Figure
-\ref{fig:tracing}. The semantics are non-deterministic when a branch
-cannot be decided, and therefore describes an infinite process tree.
+\ref{fig:tracing}. We use the notation $X^\diamond$ for a fresh meta
+variable. The semantics are non-deterministic when a branch cannot be
+decided, and therefore describes an infinite process tree.
 
 A C-term $\widehat{t}$ in our language fully describes a given set of
 program states. The \textsc{If-*}, \textsc{Case-*} and \textsc{Call}
@@ -680,6 +688,7 @@ $\alpha$.
 
 
 \subsection{Closed process trees}
+\label{sec:closed_tree}
 Iteratively driving the leaves of a process tree until there are no
 more leaf nodes for which the trace rules apply will not guarantee
 termination of the tracing algorithm. In order to ensure termination,
@@ -714,7 +723,9 @@ algorithm terminates in all cases, since it will fail to stop on
 infinitely increasing terms. To accomodate for this, we introduce
 \emph{abstractions}. In our definition of abstractions, we use the
 notion of \emph{most specific generalizations} as defined in
-\cite{sorensen1998introduction}. An abstraction is defined as follows:
+\cite{sorensen1998introduction}. The most specific generalization of
+two terms $t_1$ and $t_2$ is denoted as $t_1 \sqcap t_2$. An
+abstraction is defined as follows:
 \begin{definition}
   For $\alpha, \beta \in \dom(t)$ with $\widehat{l_g} =
   t_\mathcal{L}(\alpha) \sqcap t_\mathcal{L}(\beta)$ and
@@ -732,8 +743,7 @@ where
 
 For example, if we have nodes $\alpha,\beta \in \dom(t)$ for some tree
 $t$, with $t_\mathcal{L}(\alpha) = \texttt{let $\emptyset$ in $f
-  ~\widehat{xs}$}$ and $t_\mathcal{L}(\beta) = \texttt{let $\emptyset$
-  in $f [a, as]$}$, with $\alpha$ being an ancestor of $\beta$, we are
+  ~\widehat{xs}$}$ and $t_\mathcal{L}(\beta) = \texttt{let $\emptyset$ in $f [a, as]$}$, with $\alpha$ being an ancestor of $\beta$, we are
 not able to stop driving when reaching the node $\beta$, because
 $t_\mathcal{L}(\beta)$ is larger than $t_\mathcal{L}(\alpha)$, and
 therefore not a renaming. To solve this, we replace $t$ by $t' = {\rm
@@ -761,11 +771,11 @@ therefore remains to specify \emph{when} to generalize.
 
 In supercompilation\cite{sorensen1998introduction} this problem can be
 solved using the \emph{homeomorphic embedding} relation $<|$, since
-for any infinite sequence $\widehat{t_1}, \widehat{t_2}, ...$ of
-terms, there is guaranteed to be $\widehat{t_i} <| \widehat{t_j}$ for
-$i < j$. The homeomorphic embedding relation on C-terms is the
-smallest relation satisfying the rules defined in Figure
-\ref{fig:embedding}.
+for any infinite sequence $\widehat{t_1}, \widehat{t_2}, ...$ of terms
+over the same finite constructor set \todo{reference courcelle}, there is guaranteed to be
+$\widehat{t_i} <| \widehat{t_j}$ for $i < j$. The homeomorphic
+embedding relation on C-terms is the smallest relation satisfying the
+rules defined in Figure \ref{fig:embedding}.
 
 \subsection{Tracing algorithm}
 The final tracing algorithm can be seen below. We say that a tree $t$
@@ -777,10 +787,10 @@ is \emph{closed} when all leaves in $t$ are processed.
     \STATE $\beta\gets\text{an unprocessed leaf node in $t$}$
     \STATE $A\gets\{ \alpha\in\anc(t,\beta) ~|~ \alpha\text{ not proper}, t(\alpha) \not<| t(\beta)  \}$
     \IF{$A = \emptyset$}
-      \STATE $drive(t,\beta)$
+      \STATE $\textrm{drive}(t,\beta)$
     \ELSE
       \STATE {\bf let }$\alpha \in A$
-      \IF{$t_\mathcal{L}(\alpha) \gen t_\mathcal(\beta)$}
+      \IF{$t_\mathcal{L}(\alpha) \gen t_\mathcal{L}(\beta)$}
        \STATE $t\gets {\rm abstract}(t,\beta,\alpha)$
       \ELSIF{$t_\mathcal{L}(\alpha) \leftrightarrow t_\mathcal{L}(\beta)$}
         \STATE $t\gets {\rm drive}(t,\beta)$
@@ -791,7 +801,6 @@ is \emph{closed} when all leaves in $t$ are processed.
   \ENDWHILE
 \end{algorithmic}
 
-\section{Size-change termination analysis}
 
 \begin{figure*}\centering
   \begin{equation}
@@ -880,15 +889,34 @@ When executing our Closed URA on the addition example in Section
 \ref{sec:trfl}, Figure \ref{fig:addprog}, we obtain the process tree
 on Figure \ref{fig:addtree}. The dashed edge is a back-edge introduced
 after a generalization step (as explained in Section
-\ref{sec:processed_nodes} the edge is implicit in our representation
+\ref{sec:closed_tree} the edge is implicit in our representation
 of trees).
 
-% This process tree can be seen as a flow-graph representation of the
-% \texttt{Add} program. At the root node it is determined whether the
-% value stored in $X_{in}$ is an atom (left) or a cons (right). When
-% branching left, we bind $X_{in}$ to a fresh atom
-% meta-variable. Depending of the outcome of the equality test we return
-% an error or the $y$-value. On the right branch we haveIf we instead branch right, we 
+This process tree can be seen as a flow-graph representation of the
+\texttt{Add} program. We can plug in values in place of $X_{in}$ and
+$Yf_{in}$ and follow the graph while applying contractions,
+substitutions and expansions along the way. When we reach a terminal
+node the program terminates with the value in stored in the node.
+
+\subsubsection{Forward interpretation}
+We will now go through the evaluation of \texttt{Add} when $X_{in} =
+\texttt{['S, 'Z]}$ and $Y_{in} = \texttt{'Z}$. At the root node it is
+determined whether $X_{in}$ is an atom or a cons. As it is a cons, we
+follow the right branch, creating two new variables $Xe_1$ and $Xe_2$
+representing the head and the tail of $X_{in}$. The next edge contains
+two contractions, in this case they can be seen as value bindings,
+setting the variable on the left-hand side to the value on the right
+hand side. Now we have $X_{in} = \texttt{'Z}$ and $Y_{in} =
+\texttt{['S, 'Z]}$. We return to the root and proceed down the left
+branch, as the $X_{in}$ variable contains \texttt{'Z}, we follow the
+right branch and return $Y_{in}$.
+
+\subsubsection{Backward interpretation}
+When executing the program backwards, we can start from any of the
+terminal nodes. We unify the given output with all terminal nodes and
+execute non-deterministically from all nodes that we can unify with.
+
+Further explanation here ...
 
 \begin{figure*}
   \centering
@@ -949,6 +977,7 @@ of trees).
 
 \section{Future Work}
 \subsection{Size-change termination analysis}
+\todo{Rewrite this section}
   The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
   used to identify programs that terminate for all inputs, and
   size-change graphs resulting from this approach may be used to cut
