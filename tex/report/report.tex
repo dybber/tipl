@@ -922,13 +922,37 @@ The program can then be executed by binding constructing an
 environment $\sigma$ where the meta variables representing the input
 are bound to concrete values, and then applying the transition
 function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
-state in $F$.
+state in $F$. 
 
-The delta function should be defined as follows: \todo{}
+There are three possible transition rules, depending on the edge
+labels collected and the edge labels on edges exiting from the current
+state. An edge with a label $X_e |-> X_a$ can be taken when
+$\sigma(X_e) = va$, for some atom $va$. The new environment $\sigma'$
+will then be contain the binding $X_a |-> va$. An edge with a label
+$X_e |-> \texttt{[}Xe_1\texttt{,}Xe_2\texttt{]}$, will likewise be
+taken when $\sigma(X_e) = \texttt{[}v_1\texttt{,}v_2\texttt{]}$, for
+some values $v_1$ and $v_2$. The new environment $\sigma'$ should then
+be extended bindings: $X_1 |-> v_1$ and $X_2 |-> v_2$. An edge with
+label $Xa_1\ \#\ Xa_2$ can only be followed when $\sigma(Xa_1) \neq
+\sigma(Xa_2)$. An edge with labels $Xe_1 \gen Xe_2, Xe_3 \gen Xe_4,
+\ldots, Xe_{n-1} \gen Xe_n$ will always be followed and will give rise
+to the new bindings: $Xe_1 |-> Xe_2, Xe_3 |-> Xe_4, \ldots, Xe_{n-1}
+|-> Xe_n$.
+
+As our splits are perfect, $\delta$ will be deterministic and no two
+edges can be followed from the same state.
 
 \subsection{Backward interpretation}
-In the case of backward interpretation, we start with an output which
-can originate from one of several terminal nodes in the process tree.
+In the case of backward interpretation we have to reverse all the
+edges in the state machine defined by the process tree. In addition,
+we will make our definitions easier by adding a new node with edges
+\textit{to} all terminal nodes. This will be the starting state of the
+inverse interpretation.
+
+Now, the transition function will then again be defined of the type
+$\delta : Q \times \mathcal{P}(\omega) -> Q \times
+\mathcal{P}(\omega)$. This time however, the function will be
+non-deterministic.
 
 \section{Examples}
 \subsection{Addition}
