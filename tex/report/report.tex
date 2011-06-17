@@ -33,6 +33,7 @@
 \mathlig{<|}{\trianglelefteq}
 \mathlig{<<}{\langle}
 \mathlig{>>}{\rangle}
+\mathlig{<<=}{\gen}
 \newcommand{\dom}{\ensuremath{{\rm dom}}}
 \newcommand{\anc}{\ensuremath{{\rm anc}}}
 \newcommand{\gen}{\ensuremath{~{\leq\kern-6pt \raisebox{1pt}{$\cdot$}}~}}
@@ -748,9 +749,25 @@ algorithm terminates in all cases, since it will fail to stop on
 infinitely increasing terms. To accomodate for this, we introduce
 \emph{abstractions}. In our definition of abstractions, we use the
 notion of \emph{most specific generalizations} as defined in
-\cite{sorensen1998introduction}. The most specific generalization of
-two terms $t_1$ and $t_2$ is denoted as $t_1 \sqcap t_2$. An
-abstraction is defined as follows:
+\cite{sorensen1998introduction}:
+\begin{definition}
+  For some $\widehat{t_1},\widehat{t_2} \in \widehat{\mathcal{T}}$, we
+  define the following:
+  \begin{enumerate}
+  \item We say that $\widehat{t_1} <<= \widehat{t_2}$ if there exists
+    some substitution $\theta$ such that $\widehat{t_2} =
+    \widehat{t_1}/\theta$.
+  \item A term $\widehat{t_g}$ is a \emph{generalization} of
+    $\widehat{t_1},\widehat{t_2}$ if $\widehat{t_g} <<= \widehat{t_1}$
+    and $\widehat{t_g} <<= \widehat{t_2}$.
+  \item A \emph{most specific generalization} of $\widehat{t_1},
+    \widehat{t_2}$ is a generalization $\widehat{t_g}$ such that for
+    every generalization $\widehat{t_g'}$, we have $\widehat{t_g'} <<=
+    \widehat{t_g}$. We denote this by $\widehat{t_g} = \widehat{t_1}
+    \sqcap \widehat{t_2}$.
+  \end{enumerate}
+\end{definition}
+An abstraction is defined as follows:
 \begin{definition}
   For $\alpha, \beta \in \dom(t)$ with $\widehat{l_g} =
   t_\mathcal{L}(\alpha) \sqcap t_\mathcal{L}(\beta)$ and
