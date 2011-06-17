@@ -1412,7 +1412,19 @@ execute non-deterministically from all nodes that we can unify with.
 \section{Conclusion}
 We have succesfully defined an algorithm for creating a closed
 representation of a program trace using perfect splits as in URA. We
-have incorporated methods from the field of supercompilation in 
+have incorporated methods from the field of supercompilation in order
+to ensure termination of the tracing algorithm, and have devised a
+method for transforming the closed process tree into a
+non-deterministic program that searches for input classes given an
+output value.
+
+We have succesfully implemented the algorithm for creating closed
+process trees in the functional programming language Haskell, and
+verified that it works for some simple example programs. We have not
+managed to find the time to implement the backwards interpretation of
+the closed process tree, and have therefore not verified whether it
+works in practice. Our experiments with reversing very small programs
+by hand have shown positive results though.
 
 \section{Future Work}
 \subsection{URA performance on total programs}
