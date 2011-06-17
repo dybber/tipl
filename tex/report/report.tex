@@ -31,6 +31,8 @@
 \mathlig{::=}{\quad ::=\quad}
 \mathlig{|->}{\mapsto}
 \mathlig{<|}{\trianglelefteq}
+\mathlig{+>}{\rightsquigarrow}
+\mathlig{+O>}{\overset{\omega}{\rightsquigarrow}}
 \mathlig{<<}{\langle}
 \mathlig{>>}{\rangle}
 \mathlig{<<=}{\gen}
@@ -938,54 +940,139 @@ variables substituted for every subexpression. We are therefore
 guaranteed to reach a node which will give rise to an abstraction,
 which ensures termination of the algorithm.
 
-\subsection{Forward interpretation}
-The process tree constructed by the above algorithm can be seen as a
-flow-graph description of the original program. We can define the
-\textit{forward} semantics of this flow-graph language, as a state
-machine with transition function $\delta : Q \times
-\mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
-\subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
-process tree. That is, $\delta$ is a function from states and a set of
-edge-labels as well.  A state $q_0 \in Q$ is a designated start state
-and a subset $F \subseteq U$ are terminal nodes. As the process tree
-is finite, these sets are finite as well.
+% \subsection{Forward interpretation}
+% The process tree constructed by the above algorithm can be seen as a
+% flow-graph description of the original program. We can define the
+% \textit{forward} semantics of this flow-graph language, as a state
+% machine with transition function $\delta : Q \times
+% \mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
+% \subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
+% process tree. That is, $\delta$ is a function from states and a set of
+% edge-labels as well.  A state $q_0 \in Q$ is a designated start state
+% and a subset $F \subseteq U$ are terminal nodes. As the process tree
+% is finite, these sets are finite as well.
 
-The program can then be executed by binding constructing an
-environment $\sigma$ where the meta variables representing the input
-are bound to concrete values, and then applying the transition
-function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
-state in $F$. 
+% The program can then be executed by binding constructing an
+% environment $\sigma$ where the meta variables representing the input
+% are bound to concrete values, and then applying the transition
+% function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
+% state in $F$. 
 
-There are three possible transition rules, depending on the edge
-labels collected and the edge labels on edges exiting from the current
-state. An edge with a label $X_e |-> X_a$ can be taken when
-$\sigma(X_e) = va$, for some atom $va$. The new environment $\sigma'$
-will then be contain the binding $X_a |-> va$. An edge with a label
-$X_e |-> \texttt{[}Xe_1\texttt{,}Xe_2\texttt{]}$, will likewise be
-taken when $\sigma(X_e) = \texttt{[}v_1\texttt{,}v_2\texttt{]}$, for
-some values $v_1$ and $v_2$. The new environment $\sigma'$ should then
-be extended bindings: $X_1 |-> v_1$ and $X_2 |-> v_2$. An edge with
-label $Xa_1\ \#\ Xa_2$ can only be followed when $\sigma(Xa_1) \neq
-\sigma(Xa_2)$. An edge with labels $Xe_1 \gen Xe_2, Xe_3 \gen Xe_4,
-\ldots, Xe_{n-1} \gen Xe_n$ will always be followed and will give rise
-to the new bindings: $Xe_1 |-> Xe_2, Xe_3 |-> Xe_4, \ldots, Xe_{n-1}
-|-> Xe_n$.
+% There are three possible transition rules, depending on the edge
+% labels collected and the edge labels on edges exiting from the current
+% state. An edge with a label $X_e |-> X_a$ can be taken when
+% $\sigma(X_e) = va$, for some atom $va$. The new environment $\sigma'$
+% will then be contain the binding $X_a |-> va$. An edge with a label
+% $X_e |-> \texttt{[}Xe_1\texttt{,}Xe_2\texttt{]}$, will likewise be
+% taken when $\sigma(X_e) = \texttt{[}v_1\texttt{,}v_2\texttt{]}$, for
+% some values $v_1$ and $v_2$. The new environment $\sigma'$ should then
+% be extended bindings: $X_1 |-> v_1$ and $X_2 |-> v_2$. An edge with
+% label $Xa_1\ \#\ Xa_2$ can only be followed when $\sigma(Xa_1) \neq
+% \sigma(Xa_2)$. An edge with labels $Xe_1 \gen Xe_2, Xe_3 \gen Xe_4,
+% \ldots, Xe_{n-1} \gen Xe_n$ will always be followed and will give rise
+% to the new bindings: $Xe_1 |-> Xe_2, Xe_3 |-> Xe_4, \ldots, Xe_{n-1}
+% |-> Xe_n$.
 
-As our splits are perfect, $\delta$ will be deterministic and no two
-edges can be followed from the same state.
+% As our splits are perfect, $\delta$ will be deterministic and no two
+% edges can be followed from the same state.
 
 \subsection{Backward interpretation}
-In the case of backward interpretation we have to reverse all the
-edges in the state machine defined by the process tree. In addition,
-we will make our definitions easier by adding a new node with edges
-\textit{to} all terminal nodes. This will be the starting state of the
-inverse interpretation.
+The process tree constructed by the above algorithm can be seen as a
+flow-graph description of the original program. We can define the
+\textit{forward} semantics of this flow-graph language, as a simple
+deterministic state machine that computes the same as the original
+program. Much more interesting tough, is the backward semantics. In
+this case we have to reverse all the edges in the flow graph and in
+addition, we will make our definitions easier by adding a new node
+with edges \textit{to} all terminal nodes. This will be the starting
+state of the inverse interpretation. We define $Q \subseteq
+\mathbb{N}^{*}_1$ to be the set of nodes occurring in the process
+tree. We use the notation $q_1 +O> q_2$ to represent the existence of
+an edge between from $q_1 \in Q$ to $q_2 \in Q$ with edge labels
+$\omega$.
 
-Now, the transition function will then again be defined of the type
-$\delta : Q \times \mathcal{P}(\omega) -> Q \times
-\mathcal{P}(\omega)$. This time however, the function will be
-non-deterministic, thus multiple paths will be taken in the
-flow-graph.
+As mentioned earlier, our process tree is not perfect and thus
+contains infeasible walks. We thus have to be sure not to follow such
+a path when traversing the tree. When we traverse the tree we thus
+collect all inequalities on the followed path, such that we can detect
+for contradiction. We use the same definition of a restriction as in
+\cite{abramov2000universal}: a restriction $r$ is a finite set of
+inequalities $Xa_1\ \#\ Xa_2$ and the symbol \textsf{contra}.
+
+% Explain scoping change
+We also need a definition that will let us deal with change of scope
+occurring when a backedge is followed. At this point we return to a
+state where a set of variables is reintroduced. That is, they are
+already in our environment, but with ``old'' values and they are
+possibly bound to meta variables of which we have registered
+inequalities between. If we keep the definition of these ``old''
+variables in our environment when following a backedge, \todo{continue here... explanation of $\delta$}
+
+\todo{Define unification and explain use in rules}
+
+\begin{equation}
+  \label{eq:delta}
+  \delta_\Gamma(q, \sigma) =
+  \begin{array}{l}
+    \left\{ (x, \widehat{e}) \in \sigma | x \in \Gamma(q) \right\} \\
+    \cup
+    \left\{ (x_e, \widehat{X_e^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+    \cup \left\{ (x_a, \widehat{X_a^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+  \end{array}
+\end{equation}
+
+\begin{figure*}
+  \centering
+  \begin{equation*}
+    \frac{
+      \omega = \texttt{.}x |-> Xa
+      \quad q +O> q'
+      \quad \sigma' = \delta_\Gamma(q', \sigma[x |-> \sigma(X_a)])
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma')
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = x |-> [Xe_1, Xe_2]
+      \quad q +O> q'
+      \quad \sigma' = \sigma[x |-> [\sigma(Xe_1), \sigma(Xe_2)]]
+      \quad \sigma'' = \delta_\Gamma(q', \sigma')
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma'')
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = \texttt{.}x_1\ \#\ \texttt{.}x_2
+      \quad q +O> q'
+      \quad r' = r \cup \{ \sigma(\texttt{.}x_1)\ \#\ \sigma(\texttt{.}x_2) \}
+      \quad r' \cap \{\textsf{contra}\} = \emptyset
+      % \quad \sigma'' = \delta_\Gamma(q', \sigma')
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r', \sigma)
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = x_1\ \gen\ e_2, x_3\ \gen\ e_4, \ldots, x_{n-1}\ \gen\ e_n
+      \quad q +O> q'
+      \quad \theta = (\sigma(x_1), \sigma(x_3), \ldots, \sigma(x_{n-1})) 
+             \sqcup (e_2, e_4, \ldots, e_{n})
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma\theta)
+    }
+  \end{equation*}
+  \caption{Backwards semantics}
+  \label{fig:delta}
+\end{figure*}
 
 \section{Examples}
 \subsection{Addition}
@@ -998,8 +1085,8 @@ of trees).
 
 This process tree can be seen as a flow-graph representation of the
 \texttt{Add} program. We can plug in values in place of $X_{in}$ and
-$Yf_{in}$ and follow the graph while applying contractions,
-substitutions and expansions along the way. When we reach a terminal
+$Y_{in}$ and follow the graph while applying substitutions along the
+way unifications and expansions along the way. When we reach a terminal
 node the program terminates with the value in stored in the node.
 
 \subsubsection{Forward interpretation}
@@ -1078,7 +1165,84 @@ When executing the program backwards, we can start from any of the
 terminal nodes. We unify the given output with all terminal nodes and
 execute non-deterministically from all nodes that we can unify with.
 
-Further explanation here ...
+\todo{Further explanation here ...}
+
+
+\subsection{Neq}
+\todo{Explain}
+
+\begin{tikzpicture}
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{c}=[circle,draw=black,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[fill=black!10,inner sep=2pt]
+\node[vtx] (Start)  {{Neq $X_{in}$}} [<-]
+                    child {
+                        node[leaf] (N1)  {\texttt{'true}}
+                        edge from parent {
+                          node[left] {$X_{in} \mapsto Xa_1$}
+                        }
+                    }
+            child {
+                node[c] (N3)  {}
+                    child {
+                        node[leaf] (N45)  {\texttt{'odd-length}}
+                        edge from parent {
+                          node[right] {$Xe_2 \mapsto Xa_2$}
+                        }
+                    }
+                    edge from parent {
+                      node[right] {$X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]}$}
+                    }
+            }
+;
+\node[c, right=3cm of N3] (N4) {} [<-]
+    child {
+        node[leaf] (N5)  {\texttt{'odd-x1-cons}}
+        edge from parent {
+          node[right] {$Xe_{1} \mapsto \texttt{[}Xe_5\texttt{,} Xe_6\texttt{]}$}
+        }
+    }
+;
+\node[c, right=3cm of N4] (N6) {} [<-]
+    child {
+        node[leaf] (N7)  {\texttt{'odd-x2-cons}}
+        edge from parent {
+          node[right] {$Xe_{3} \mapsto \texttt{[}Xe_7\texttt{,} Xe_8\texttt{]}$}
+        }
+    }
+;
+\node[c, right=3cm of N6] (N8) {} [<-]
+    child {
+        node[leaf] (N9)  {\texttt{'error-pair-eq}}
+        edge from parent {
+          node[right] {$Xa_3 \mapsto Xa_4$}
+        }
+    }
+;
+\node[c, right=3cm of N8] (N10) {} [<-];
+
+\node[c, above=of N10] (gen) {};
+\draw [<-] (N10) -- (gen);
+\node at(13.5,-.6){$X_{in} \gen Xe_4$};
+
+\draw [dashed,<-] (gen) -- (Start);
+\draw [<-] (N3) -- (N4);
+\node at(2.5,-1.3){$Xe_2 \mapsto \texttt{[}Xe_3\texttt{,} Xe_4\texttt{]}$};
+\draw [<-] (N4) -- (N6);
+\node at(5.9,-1.3){$Xe_1 \mapsto Xa_3$};
+\draw [<-] (N6) -- (N8);
+\node at(9.3,-1.3){$Xe_3 \mapsto Xa_4$};
+\draw [<-] (N8) -- (N10);
+\node at(12.7,-1.3){$Xa_3\ \#\ Xa_4$};
+
+% out node
+\node[c, below=3cm of N4] (Out) {$X_{out}$} [<-];
+\draw [->] (Out) .. controls +(left:5cm).. (N1) node[pos=0.5, left] {$X_{out} \gen \texttt{'true}\ $};
+\draw [->] (Out) -- (N45) node[pos=0, left, rotate=-15] {$X_{out} \gen \texttt{'odd-length}\quad$};
+\draw [->] (Out) -- (N5) node[pos=0.5, right] {$X_{out} \gen \texttt{'odd-x1-cons}$};
+\draw [->] (Out) .. controls +(right:6cm) .. (N7)  node[pos=0.5, left] {$X_{out} \gen \texttt{'odd-x2-cons}\ $};
+\draw [->] (Out) .. controls +(right:6cm) .. (N9) node[pos=0.5, right] {$\quad X_{out} \gen \texttt{'error-pair-eq}$};
+\end{tikzpicture}
 
 
 \begin{figure*}
