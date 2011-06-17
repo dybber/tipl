@@ -39,6 +39,7 @@
 \newcommand{\dom}{\ensuremath{{\rm dom}}}
 \newcommand{\anc}{\ensuremath{{\rm anc}}}
 \newcommand{\gen}{\ensuremath{~{\leq\kern-6pt \raisebox{1pt}{$\cdot$}}~}}
+\newcommand{\w}[1]{\ensuremath{\widehat{#1}}}
 
 % For proofs, As frac but does not change the font size
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
@@ -598,14 +599,26 @@ $\alpha$.
 
 \begin{figure}
   \begin{align*}
-    \mathcal{K} \ni \kappa ::= & \widehat{ea_1}~\#~\widehat{ea_2} \tag{Contraction} \\
+    \w{\mathcal{K}} \ni \widehat{\kappa} ::= & \widehat{ea_1}~\#~\widehat{ea_2} \tag{Contraction} \\
                        | \quad & (\widehat{x} \mapsto \widehat{e})^{+} \\
-    \Sigma \ni \sigma ::= & (\widehat{x} \gen \widehat{e})^{+} \tag{Expansion} \\
-    \Omega \ni \omega ::= & \kappa ~|~ \sigma \tag{Edge label}
+    \w{\Phi} \ni \w{\phi} ::= & (\widehat{x} \gen \widehat{e})^{+} \tag{Expansion} \\
+    \w{\Omega} \ni \w{\omega} ::= & \w{\kappa} ~|~ \w{\phi} \tag{Edge label}
   \end{align*}
-  \caption{Edge labels}
+  \caption{Edge labels for tracing}
   \label{fig:edge}
 \end{figure}
+
+\begin{figure}
+  \begin{align*}
+    \mathcal{K} \ni \kappa ::= & ea_1~\#~ea_2 \tag{Contraction} \\
+                       | \quad & (x \mapsto e)^{+} \\
+    \Phi \ni \phi ::= & (x \gen e)^{+} \tag{Expansion} \\
+    \Omega \ni \omega ::= & \kappa ~|~ \phi \tag{Edge label}
+  \end{align*}
+  \caption{Edge labels for backwards interpretation}
+  \label{fig:edge_back}
+\end{figure}
+
 
 \begin{figure*}
   \begin{align}
@@ -986,70 +999,147 @@ which ensures termination of the algorithm.
 \subsection{Backward interpretation}
 The process tree constructed by the above algorithm can be seen as a
 flow-graph description of the original program. We can define the
-\textit{forward} semantics of this flow-graph language, as a simple
+\textit{forward} semantics of this flow-graph language as a simple
 deterministic state machine that computes the same as the original
-program. Much more interesting tough, is the backward semantics. In
-this case we have to reverse all the edges in the flow graph and in
-addition, we will make our definitions easier by adding a new node
-with edges \textit{to} all terminal nodes. This will be the starting
-state of the inverse interpretation. We define $Q \subseteq
-\mathbb{N}^{*}_1$ to be the set of nodes occurring in the process
-tree. We use the notation $q_1 +O> q_2$ to represent the existence of
-an edge between from $q_1 \in Q$ to $q_2 \in Q$ with edge labels
-$\omega$.
+program. Much more interesting though is the backwards semantics.
 
-As mentioned earlier, our process tree is not perfect and thus
-contains infeasible walks. We thus have to be sure not to follow such
-a path when traversing the tree. When we traverse the tree we thus
-collect all inequalities on the followed path, such that we can detect
-for contradiction. We use the same definition of a restriction as in
-\cite{abramov2000universal}: a restriction $r$ is a finite set of
-inequalities $Xa_1\ \#\ Xa_2$ and the symbol \textsf{contra}.
+We can derive a non-deterministic flow-chart program from any closed
+process tree. Such a program is defined as a 5-tuple $R = (Q, E,
+\Gamma, q_{init}, q_{accept})$ where $Q \subset \mathbb{N}^\star_1$ is
+a set of states derived from the nodes in the original process tree,
+$E : Q \times \Omega \times Q$ is a set of edges with labels from
+$\Omega$, $\Gamma : Q \rightarrow \mathcal{P}(x)$ is a mapping from
+states to sets of variables, and $q_{init},q_{accept}$ is the inital
+and accepting states of the program, respectively. When it is clear
+from the context, we say that $q_1 +O> q_2$ when $(q_1, \omega, q_2)
+\in E$, for some $E$. The $\Gamma$ map will be explained later, but it
+is essentially a specification of which variables which are in scope
+in a given state.
 
-% Explain scoping change
-We also need a definition that will let us deal with change of scope
-occurring when a backedge is followed. At this point we return to a
-state where a set of variables is reintroduced. That is, they are
-already in our environment, but with ``old'' values and they are
-possibly bound to meta variables of which we have registered
-inequalities between. If we keep the definition of these ``old''
-variables in our environment when following a backedge, \todo{continue here... explanation of $\delta$}
+Given a process tree $t$, we construct a reverse program
+$R=(Q,E,\Gamma,q_{init},q_{accept})$ in the following manner. For
+technical reasons, we require that if there is a leaf node $\beta$ in
+$t$ with an ancestor $\alpha$ that is a renaming of $\beta$,
+abstractions are added to make the terms identical. This involves
+adding let-terms which only performs renaming, and hence does not
+change the structure of the tree. We also require that every
+terminating node $\beta\in\dom(t)$ has label $t_{\mathcal{L}}(\beta) =
+\texttt{let $\emptyset$ in $\w{x_{out}}$})$. This can also easily be
+ensured by adding appropriate abstractions and driving a single step.
+\begin{enumerate}
+  \item Let $Q = \dom(t)$ and set $q_{accept}$ to be the root in
+    $t$. Insert new node $q_{init}$ in $Q$.
+  \item For each $\alpha \in \dom(t)$, when there exists $\alpha i \in
+    \dom(t)$ for $i \in \mathbb{N}$ and $t(\alpha i) = (\w{\omega},
+    \w{l})$ insert edge $(\alpha i, \omega, \alpha)$ in $E$, where
+    $\omega$ is $\w{\omega}$ with program variables substituted for
+    meta variables. Note that this will ``flip'' all edges from the
+    process tree.
+  \item Whenever we have a leaf node $\beta \in \dom(t)$ which has an
+    ancestor $\alpha\in\dom(t)$ with an identical label, add edge
+    $(\alpha, \kappa_{id}, \beta)$ to $E$.
+  \item For each terminating leaf node $\beta\in\dom(t)$, remove it
+    from $Q$ and redirect its edges to $q_{init}$.
+\end{enumerate}
 
-\todo{Define unification and explain use in rules}
+The map $\Gamma$ is constructed from the input tree $t$, and is
+constructed using a fixed point algorithm where for every
+$\alpha\in\dom(t)$ with ancestor $\beta$, we have
+$$
+  \Gamma(\alpha) = var(t_{\mathcal{L}}(\alpha)) \cup var(t_\Omega(\alpha)) \cup \Gamma(\beta)
+$$
+where $var(\w{t})$ is the free variables of $\w{t}$.
 
-\begin{equation}
+The backwards interpretation will essentially be walking the process
+tree backwards, using contractions and expansions to update a state
+$\sigma \in (\mathcal{X} \times \mathcal{E})$. When we follow one of
+the back edges introduced in step 3 above, the state will contain
+variable bindings that need to be ``forgotten'', i.e. we need to bind
+the program variables to fresh meta variables. This is where we use
+the $\Gamma$-map, which reflects which variables that can be in scope
+at a given state. The following auxiliary function is used in the
+semantics to define what happens with the program state $\sigma$ when
+transitioning to state $q$ given a scope map $\Gamma$:
+
+\begin{equation*}
   \label{eq:delta}
   \delta_\Gamma(q, \sigma) =
   \begin{array}{l}
     \left\{ (x, \widehat{e}) \in \sigma | x \in \Gamma(q) \right\} \\
     \cup
-    \left\{ (x_e, \widehat{X_e^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
-    \cup \left\{ (x_a, \widehat{X_a^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+    \left\{ (x_{e_i}, \widehat{X_{e_i}^\diamond}) \in \sigma \Big| x_{e_i} \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+    \cup \left\{ (x_{a_1}, \widehat{X_{a_i}^\diamond}) \in \sigma \Big| x_{a_i} \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
   \end{array}
-\end{equation}
+\end{equation*}
+That is, any mapping that was already in $\sigma$ and also in the
+scope map is preserved, the rest are removed. Any variables in the
+scope map that is not already bound in $\sigma$ is bound to
+\emph{fresh} meta variables.
+
+As mentioned earlier, our process tree is not perfect, meaning it may
+be possible to perform an infeasible walk. We therefore have to be
+sure not to follow such a path when traversing the tree. When we
+traverse the tree we thus collect all inequalities on the followed
+path, such that we can detect any contradictions. We use the same
+definition of restrictions as in \cite{abramov2000universal}:
+\begin{definition}
+  A restriction $\w{r}$ is a finite set of inequalities between meta
+  variables $\w{Xa_1}\ \#\ \w{Xa_2}$. Inequalities of the form
+  $\w{ea}\ \#\ \w{ea}$ are \emph{contradictions}. By ${\rm Contra}$ we
+  denote the set of contradictions.
+\end{definition}
+
+Finally, when the backwards interpreting along edges with expansions,
+we will need to unify the contents of our program state with
+expressions containing program variables. We use a restricted form of
+unification, called instantiation, where we are only allowed to make
+substitutions on program variables:
+\begin{definition}
+\begin{enumerate}
+\item We say that program expression $e_1 \in \mathcal{E}$ is
+  \emph{instantiatable} to C-expression $\w{e_2} \in \w{\mathcal{E}}$
+  if there exists a substitutions $\theta_1 \in (\mathcal{X} \times
+  \w{\mathcal{E}})$ and $\w{\theta_2} \in (\w{\mathcal{X}} \times
+  \w{\mathcal{E}})$ such that $\w{e_2} \w{\theta_2} = e_1 \theta_1$.
+\item If $e_1, \w{e_2}$ are instantiatable by $(\theta_1,
+  \w{\theta_2})$ and for any two instantiators $(\theta_1',
+  \w{\theta_2'})$ there exists substitutions $\sigma_1, \w{\sigma_2}$
+  such that $\theta_1' = \sigma_1 \circ \theta_1$ or $\w{\theta_2'} =
+  \w{\sigma_2} \circ \w{\theta_2}$, we say that $(\theta_1,
+  \w{\theta_2})$ are the most general instantiators.
+\item We denote the above relationship by $(\theta_1, \w{\theta_2}) =
+  e_1 \sqcup \w{e_2}$. We write $(\theta_1, \w{\theta_2}) = (e_1, ...,
+  e_n) \sqcup (\w{e_1}, ..., \w{e_n})$ when the instantiators has to
+  instantiate across several expression pairs simultaneously.
+\end{enumerate}
+\end{definition}
+
+We are now ready to define the semantics for backwards
+interpretation. The rules are given in Figure
+\ref{fig:backwards_semantics}.
 
 \begin{figure*}
   \centering
   \begin{equation*}
     \frac{
-      \omega = \texttt{.}x |-> Xa
+      \omega = \texttt{.}x |-> \w{Xa}
       \quad q +O> q'
-      \quad \sigma' = \delta_\Gamma(q', \sigma[x |-> \sigma(X_a)])
+      \quad \sigma' = \delta_\Gamma(q', \sigma[x |-> \sigma(\w{X_a})])
     }
     {
-      |-_\Gamma (q, r, \sigma) => (q', r, \sigma')
+      |-_\Gamma (q, \w{r}, \sigma) => (q', \w{r}, \sigma')
     }
   \end{equation*}
 
   \begin{equation*}
     \frac{
-      \omega = x |-> [Xe_1, Xe_2]
+      \omega = x |-> [\w{Xe_1}, \w{Xe_2}]
       \quad q +O> q'
-      \quad \sigma' = \sigma[x |-> [\sigma(Xe_1), \sigma(Xe_2)]]
+      \quad \sigma' = \sigma[x |-> [\sigma(\w{Xe_1}), \sigma(\w{Xe_2})]]
       \quad \sigma'' = \delta_\Gamma(q', \sigma')
     }
     {
-      |-_\Gamma (q, r, \sigma) => (q', r, \sigma'')
+      |-_\Gamma (q, \w{r}, \sigma) => (q', \w{r}, \sigma'')
     }
   \end{equation*}
 
@@ -1057,28 +1147,32 @@ variables in our environment when following a backedge, \todo{continue here... e
     \frac{
       \omega = \texttt{.}x_1\ \#\ \texttt{.}x_2
       \quad q +O> q'
-      \quad r' = r \cup \{ \sigma(\texttt{.}x_1)\ \#\ \sigma(\texttt{.}x_2) \}
-      \quad r' \cap \{\textsf{contra}\} = \emptyset
+      \quad \w{r'} = \w{r} \cup \{ \sigma(\texttt{.}x_1)\ \#\ \sigma(\texttt{.}x_2) \}
+      \quad \w{r'} \cap {\rm Contra} = \emptyset
       % \quad \sigma'' = \delta_\Gamma(q', \sigma')
     }
     {
-      |-_\Gamma (q, r, \sigma) => (q', r', \sigma)
+      |-_\Gamma (q, \w{r}, \sigma) => (q', \w{r'}, \sigma)
     }
   \end{equation*}
 
   \begin{equation*}
     \frac{
-      \omega = x_1\ \gen\ e_2, x_3\ \gen\ e_4, \ldots, x_{n-1}\ \gen\ e_n
-      \quad q +O> q'
-      \quad \theta = (\sigma(x_1), \sigma(x_3), \ldots, \sigma(x_{n-1})) 
-             \sqcup (e_2, e_4, \ldots, e_{n})
+      \begin{array}{c}
+        \omega = x_1\ \gen\ e_2, x_3\ \gen\ e_4, \ldots, x_{n-1}\ \gen\ e_n
+        \quad q +O> q' \\
+        \quad (\theta_1, \w{\theta_2}) = (e_2, e_4, \ldots, e_{n}) \sqcup (\sigma(x_1), \sigma(x_3), \ldots, \sigma(x_{n-1})) \\
+        \sigma' = \{ (x, \w{e} \w{\theta_2}) ~|~ (x, \w{e}) \in \sigma \} \theta_1
+        \quad \sigma'' = \delta_\Gamma(q', \sigma') \\
+        \w{r'} = \w{r} \w{\theta_2} \quad \w{r'} \cap {\rm Contra} = \emptyset
+      \end{array}
     }
     {
-      |-_\Gamma (q, r, \sigma) => (q', r, \sigma\theta)
+      |-_\Gamma (q, \w{r}, \sigma) => (q', \w{r'}, \sigma'')
     }
   \end{equation*}
   \caption{Backwards semantics}
-  \label{fig:delta}
+  \label{fig:backwards_semantics}
 \end{figure*}
 
 \section{Examples}
