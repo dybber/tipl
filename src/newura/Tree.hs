@@ -46,7 +46,7 @@ sub br@(Branch _ _) [] = br
 sub (Branch _ brs) (ix:ixs) = sub (snd (brs !! (ix-1))) ixs
 
 isProcessed :: Tree -> Node -> Bool
-isProcessed tr n = theta == [] && (isExpTerm t || any (isRenamingOf t) ancTerms)
+isProcessed tr n = theta == [] && (isExpTerm t || any (== t) ancTerms)
   where Branch (Let theta t) _ = sub tr n
         ancTerms = map letTerm $ filter (not . isProper) $ map (treeConf . sub tr) $ anc n
 
@@ -58,7 +58,10 @@ abstract fr t a b =
   let Branch (Let [] t1) _ = sub t a
       Branch (Let [] t2) _ = sub t b
       Just (fr', t_g, theta, _) = msg fr t1 t2
-   in (fr', t ./ (a |-> Branch (Let theta t_g) []))
+      Just (fr'', t_g', _, theta') = msg fr t2 t1
+   in if isRenamingOf t1 t2
+      then (fr'', t ./ (a |-> Branch (Let theta' t_g') []))
+      else (fr', t ./ (a |-> Branch (Let theta t_g) []))
 
 (?) :: Tree -> Node -> Let C
 t ? n = treeConf $ sub t n
