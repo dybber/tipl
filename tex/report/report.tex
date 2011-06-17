@@ -963,8 +963,6 @@ tree. We use the notation $q_1 +O> q_2$ to represent the existence of
 an edge between from $q_1 \in Q$ to $q_2 \in Q$ with edge labels
 $\omega$.
 
-% We have two separate difficulties that we have to deal with in order
-% to present the semantics. 
 As mentioned earlier, our process tree is not perfect and thus
 contains infeasible walks. We thus have to be sure not to follow such
 a path when traversing the tree. When we traverse the tree we thus
@@ -973,17 +971,14 @@ for contradiction. We use the same definition of a restriction as in
 \cite{abramov2000universal}: a restriction $r$ is a finite set of
 inequalities $Xa_1\ \#\ Xa_2$ and the symbol \textsf{contra}.
 
+% Explain scoping change
 We also need a definition that will let us deal with change of scope
 occurring when a backedge is followed. At this point we return to a
 state where a set of variables is reintroduced, as we get back to a
 previous state. We will thus have several 
 
-When the tree is traversed backwards 
 
-
-% We also have another problem that we have to deal with when
-% considering the backwards semantics for the closed process tree. We
-% can potentially
+% Define unification and explain use
 
 \begin{equation}
   \label{eq:delta}
