@@ -188,9 +188,8 @@ down to the relevant return point.
 To represent such classes of values \textit{meta variables} with a set
 of constraints are used. A meta variable is a placeholder for any
 possible value. They should not be confused with \textit{program
-  variables}, as these which are used in the specification of a
-program. These will never represent more than a single value at a
-time.
+  variables}, as these are used in the specification of a program
+only, will never represent more than a single value at a time.
 
 In the most general case, all arguments are specified to be a meta
 variable without any further restrictions. To get a finite answer it
@@ -199,7 +198,7 @@ certain form, such as ``a three element list of values''. This can be
 done by specifying that the input is such a list, with a new
 meta variable at each position in the list.
 
-I concrete value is said to be instance of an expression containing
+A concrete value is said to be instance of an expression containing
 meta variables, if there exists a substitution of the meta variables
 such that the value is obtained. 
 
@@ -296,10 +295,10 @@ contradictions.
 \subsection{Perfect Process Trees}
 A \textit{perfect} process tree \cite{gluck1993occam}, is a process
 tree without any infeasible paths. A path is infeasible if there is no
-input such that the path is taken. The universal solving algorithm
+input such that the path is taken. The universal resolving algorithm
 always constructs perfect process trees, as branches are only created
 in the tree if no contradictions between contractions occur along the
-path from the root and splits in the tree are \textit{perfect
+path from the root, and splits in the tree are \textit{perfect
   splits}. Splits are perfect as long as an input value only gives
 rise to a single path through the tree. We will show how to obtain a
 finite representation of a process tree, but in doing so, we will
@@ -1012,8 +1011,8 @@ $\Omega$, $\Gamma : Q \rightarrow \mathcal{P}(x)$ is a mapping from
 states to sets of variables, and $q_{init},q_{accept}$ is the inital
 and accepting states of the program, respectively. When it is clear
 from the context, we say that $q_1 +O> q_2$ when $(q_1, \omega, q_2)
-\in E$, for some $E$. The $\Gamma$ map will be explained later, but it
-is essentially a specification of which variables which are in scope
+\in E$, for some $E$. The $\Gamma$ map which will be explained later,
+is essentially a static specification of which variables are in scope
 in a given state.
 
 Given a process tree $t$, we construct a reverse program
@@ -1024,7 +1023,7 @@ abstractions are added to make the terms identical. This involves
 adding let-terms which only performs renaming, and hence does not
 change the structure of the tree. We also require that every
 terminating node $\beta\in\dom(t)$ has label $t_{\mathcal{L}}(\beta) =
-\texttt{let $\emptyset$ in $\w{x_{out}}$})$. This can also easily be
+\texttt{let $\emptyset$ in $\w{x_{out}}$}$. This can also easily be
 ensured by adding appropriate abstractions and driving a single step.
 \begin{enumerate}
   \item Let $Q = \dom(t)$ and set $q_{accept}$ to be the root in
@@ -1037,7 +1036,7 @@ ensured by adding appropriate abstractions and driving a single step.
     process tree.
   \item Whenever we have a leaf node $\beta \in \dom(t)$ which has an
     ancestor $\alpha\in\dom(t)$ with an identical label, add edge
-    $(\alpha, \kappa_{id}, \beta)$ to $E$.
+    $(\beta, \kappa_{id}, \alpha)$ to $E$.
   \item For each terminating leaf node $\beta\in\dom(t)$, remove it
     from $Q$ and redirect its edges to $q_{init}$.
 \end{enumerate}
