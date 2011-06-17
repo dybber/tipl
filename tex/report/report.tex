@@ -1125,16 +1125,29 @@ Further explanation here ...
 
 
 \section{Future Work}
-\subsection{Size-change termination analysis}
-\todo{Rewrite this section}
-  The Size-Change Termination Analysis (SCTA)\cite{lee2001size} can be
-  used to identify programs that terminate for all inputs, and
-  size-change graphs resulting from this approach may be used to cut
-  branches in a process tree, minimizing its size. We are not aware of
-  any uses of SCTA in the field of inverse interpretation, but in this
-  report we will investigate whether this approach is feasible.
+\subsection{URA performance on total programs}
+If a program is guaranteed to terminate for every input, we say that
+the program is \emph{total}. This would also imply that URA would
+never enter a non-terminating branch when building the perfect process
+tree for a total program, making every branch feasible (as long as URA
+cuts branches with empty input classes).
 
+Checking whether a program is total is famously undecidable, but by
+making restrictions on the form of programs, e.g. by only allowing a
+restricted form of recursion, totality of some programs can be
+verified (though some total programs may incorrectly be rejected). The
+Size-Change Termination Analysis (SCTA)\cite{lee2001size} is one
+method for doing termination checking, which is based on building
+size-change graphs that can be used to verify that every infinite
+sequence of state transitions in a program will cause infinite descent
+of the size of at least one program parameter. A restricted version of
+URA could therefore use this analysis to reject any program that is
+not provably total.
 
+It remains to perform experiments to verify whether the subset of
+total programs are better suited for inverse interpretation, but
+unfortunately we have not managed to find the time to investigate this
+subject.
 
 \bibliographystyle{abbrvnat}
 \bibliography{../bibliography}
