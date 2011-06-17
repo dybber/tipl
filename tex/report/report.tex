@@ -13,6 +13,7 @@
 \usepackage{tikz}
 
 \usetikzlibrary{shapes}
+\usetikzlibrary{positioning}
 \usepackage{algorithmic}
 
 \conferenceinfo{DIKU workshop on Topics in Programming Languages,}{June 2011.}
@@ -183,7 +184,9 @@ down to the relevant return point.
 To represent such classes of values \textit{meta variables} with a set
 of constraints are used. A meta variable is a placeholder for any
 possible value. They should not be confused with \textit{program
-  variables}, as these \ldots \todo{more explanation of this here...}
+  variables}, as these which are used in the specification of a
+program. These will never represent more than a single value at a
+time.
 
 In the most general case, all arguments are specified to be a meta
 variable without any further restrictions. To get a finite answer it
@@ -794,10 +797,11 @@ therefore remains to specify \emph{when} to generalize.
 In supercompilation\cite{sorensen1998introduction} this problem can be
 solved using the \emph{homeomorphic embedding} relation $<|$, since
 for any infinite sequence $\widehat{t_1}, \widehat{t_2}, ...$ of terms
-over the same finite constructor set \todo{reference courcelle}, there is guaranteed to be
-$\widehat{t_i} <| \widehat{t_j}$ for $i < j$. The homeomorphic
-embedding relation on C-terms is the smallest relation satisfying the
-rules defined in Figure \ref{fig:embedding}.
+over the same finite set of constructors, there is guaranteed to be
+$\widehat{t_i} <| \widehat{t_j}$ for $i < j$\todo{reference
+  courcelle}. The homeomorphic embedding relation on C-terms is the
+smallest relation satisfying the rules defined in Figure
+\ref{fig:embedding}.
 
 \begin{figure*}\centering
   \begin{equation}
@@ -952,7 +956,8 @@ inverse interpretation.
 Now, the transition function will then again be defined of the type
 $\delta : Q \times \mathcal{P}(\omega) -> Q \times
 \mathcal{P}(\omega)$. This time however, the function will be
-non-deterministic.
+non-deterministic, thus multiple paths will be taken in the
+flow-graph.
 
 \section{Examples}
 \subsection{Addition}
@@ -981,13 +986,6 @@ hand side. Now we have $X_{in} = \texttt{'Z}$ and $Y_{in} =
 \texttt{['S, 'Z]}$. We return to the root and proceed down the left
 branch, as the $X_{in}$ variable contains \texttt{'Z}, we follow the
 right branch and return $Y_{in}$.
-
-\subsubsection{Backward interpretation}
-When executing the program backwards, we can start from any of the
-terminal nodes. We unify the given output with all terminal nodes and
-execute non-deterministically from all nodes that we can unify with.
-
-Further explanation here ...
 
 \begin{figure*}
   \centering
@@ -1045,6 +1043,79 @@ Further explanation here ...
   \caption{Closed process tree for addition}
   \label{fig:addtree}
 \end{figure*}
+
+
+\subsubsection{Backward interpretation}
+When executing the program backwards, we can start from any of the
+terminal nodes. We unify the given output with all terminal nodes and
+execute non-deterministically from all nodes that we can unify with.
+
+Further explanation here ...
+
+
+\begin{figure*}
+  \centering
+
+\begin{tikzpicture}
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[vtx] (N2)  {\texttt{Add $X_{in}$ $Y_{in}$}} [<-]
+            child [sibling distance=6cm, level distance=1.2cm] {
+                node[vtx] (N3)  {\texttt{if ...}}
+                    child [sibling distance=3cm, level distance=1.5cm] {
+                        node[leaf] (N4)  {\texttt{'err}}
+                        edge from parent {
+                          node[left] {$Xa_1\ \#\ \texttt{'Z}$}
+                        }
+                    }
+                    child [sibling distance=3cm, level distance=1.5cm]{
+                        node[leaf] (N5)  {$Y_{in}$}
+                        edge from parent {
+                          node[right] {$Xa_1 \mapsto \texttt{'Z}$}
+                        }
+                    }
+                    edge from parent {
+                      node[left] {$X_{in} \mapsto Xa_1\quad$}
+                    }
+            }
+            child [sibling distance=7cm, level distance=1.6cm]{
+                node[vtx] (N6)  {
+                  $\begin{array}{l}
+                    \texttt{let $X_{in}$ = $Xe_2$;} \\
+                    \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+                    \texttt{in Add $X_{in}$ $Y_{in}$}
+                  \end{array}$
+                }
+                child [level distance=2cm] {
+                  node[vtx] (N7) {
+                    \texttt{Add $X_{in}$ $Y_{in}$}
+                  }
+                  edge from parent [left] {
+                    node[right] {$
+                      \begin{array}{l}
+                        X_{in} \gen Xe_2 \\
+                        Y_{in} \gen \texttt{['S, $Y_{in}$]}
+                      \end{array}$}
+                  }
+                }
+                edge from parent {
+                  node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+                }
+    }
+;
+
+\node[circle,draw,below right=of N4] (END) {$X_{out}$};
+\draw [dashed,->] (END) -- (N4);
+\node at(-4.6,-3.8){$X_{out} \gen \texttt{'err}$};
+\draw [dashed,->] (END) -- (N5);
+\node at(-1.2,-3.8){$X_{out} \gen \texttt{$Y_{in}$}$};
+\draw [dashed,<-] (N7) .. controls +(left:3cm).. (N2);
+\end{tikzpicture}
+\caption{Closed process tree for addition, with edges reversed and new
+  combined starting state.}
+  \label{fig:addtree}
+\end{figure*}
+
 
 \section{Future Work}
 \subsection{Size-change termination analysis}
