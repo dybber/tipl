@@ -31,6 +31,8 @@
 \mathlig{::=}{\quad ::=\quad}
 \mathlig{|->}{\mapsto}
 \mathlig{<|}{\trianglelefteq}
+\mathlig{+>}{\rightsquigarrow}
+\mathlig{+O>}{\overset{\omega}{\rightsquigarrow}}
 \mathlig{<<}{\langle}
 \mathlig{>>}{\rangle}
 \newcommand{\dom}{\ensuremath{{\rm dom}}}
@@ -910,54 +912,142 @@ is \emph{closed} when all leaves in $t$ are processed.
 \end{algorithmic}
 
 
-\subsection{Forward interpretation}
-The process tree constructed by the above algorithm can be seen as a
-flow-graph description of the original program. We can define the
-\textit{forward} semantics of this flow-graph language, as a state
-machine with transition function $\delta : Q \times
-\mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
-\subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
-process tree. That is, $\delta$ is a function from states and a set of
-edge-labels as well.  A state $q_0 \in Q$ is a designated start state
-and a subset $F \subseteq U$ are terminal nodes. As the process tree
-is finite, these sets are finite as well.
+% \subsection{Forward interpretation}
+% The process tree constructed by the above algorithm can be seen as a
+% flow-graph description of the original program. We can define the
+% \textit{forward} semantics of this flow-graph language, as a state
+% machine with transition function $\delta : Q \times
+% \mathcal{P}(\omega) -> Q \times \mathcal{P}(\omega)$, where $Q
+% \subseteq \mathbb{N}^{*}_1$ is the set of nodes occurring in the
+% process tree. That is, $\delta$ is a function from states and a set of
+% edge-labels as well.  A state $q_0 \in Q$ is a designated start state
+% and a subset $F \subseteq U$ are terminal nodes. As the process tree
+% is finite, these sets are finite as well.
 
-The program can then be executed by binding constructing an
-environment $\sigma$ where the meta variables representing the input
-are bound to concrete values, and then applying the transition
-function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
-state in $F$. 
+% The program can then be executed by binding constructing an
+% environment $\sigma$ where the meta variables representing the input
+% are bound to concrete values, and then applying the transition
+% function continuously: $\delta^{*}(q_o, \sigma)$, until we reach a
+% state in $F$. 
 
-There are three possible transition rules, depending on the edge
-labels collected and the edge labels on edges exiting from the current
-state. An edge with a label $X_e |-> X_a$ can be taken when
-$\sigma(X_e) = va$, for some atom $va$. The new environment $\sigma'$
-will then be contain the binding $X_a |-> va$. An edge with a label
-$X_e |-> \texttt{[}Xe_1\texttt{,}Xe_2\texttt{]}$, will likewise be
-taken when $\sigma(X_e) = \texttt{[}v_1\texttt{,}v_2\texttt{]}$, for
-some values $v_1$ and $v_2$. The new environment $\sigma'$ should then
-be extended bindings: $X_1 |-> v_1$ and $X_2 |-> v_2$. An edge with
-label $Xa_1\ \#\ Xa_2$ can only be followed when $\sigma(Xa_1) \neq
-\sigma(Xa_2)$. An edge with labels $Xe_1 \gen Xe_2, Xe_3 \gen Xe_4,
-\ldots, Xe_{n-1} \gen Xe_n$ will always be followed and will give rise
-to the new bindings: $Xe_1 |-> Xe_2, Xe_3 |-> Xe_4, \ldots, Xe_{n-1}
-|-> Xe_n$.
+% There are three possible transition rules, depending on the edge
+% labels collected and the edge labels on edges exiting from the current
+% state. An edge with a label $X_e |-> X_a$ can be taken when
+% $\sigma(X_e) = va$, for some atom $va$. The new environment $\sigma'$
+% will then be contain the binding $X_a |-> va$. An edge with a label
+% $X_e |-> \texttt{[}Xe_1\texttt{,}Xe_2\texttt{]}$, will likewise be
+% taken when $\sigma(X_e) = \texttt{[}v_1\texttt{,}v_2\texttt{]}$, for
+% some values $v_1$ and $v_2$. The new environment $\sigma'$ should then
+% be extended bindings: $X_1 |-> v_1$ and $X_2 |-> v_2$. An edge with
+% label $Xa_1\ \#\ Xa_2$ can only be followed when $\sigma(Xa_1) \neq
+% \sigma(Xa_2)$. An edge with labels $Xe_1 \gen Xe_2, Xe_3 \gen Xe_4,
+% \ldots, Xe_{n-1} \gen Xe_n$ will always be followed and will give rise
+% to the new bindings: $Xe_1 |-> Xe_2, Xe_3 |-> Xe_4, \ldots, Xe_{n-1}
+% |-> Xe_n$.
 
-As our splits are perfect, $\delta$ will be deterministic and no two
-edges can be followed from the same state.
+% As our splits are perfect, $\delta$ will be deterministic and no two
+% edges can be followed from the same state.
 
 \subsection{Backward interpretation}
-In the case of backward interpretation we have to reverse all the
-edges in the state machine defined by the process tree. In addition,
-we will make our definitions easier by adding a new node with edges
-\textit{to} all terminal nodes. This will be the starting state of the
-inverse interpretation.
+The process tree constructed by the above algorithm can be seen as a
+flow-graph description of the original program. We can define the
+\textit{forward} semantics of this flow-graph language, as a simple
+deterministic state machine that computes the same as the original
+program. Much more interesting tough, is the backward semantics. In
+this case we have to reverse all the edges in the flow graph and in
+addition, we will make our definitions easier by adding a new node
+with edges \textit{to} all terminal nodes. This will be the starting
+state of the inverse interpretation. We define $Q \subseteq
+\mathbb{N}^{*}_1$ to be the set of nodes occurring in the process
+tree. We use the notation $q_1 +O> q_2$ to represent the existence of
+an edge between from $q_1 \in Q$ to $q_2 \in Q$ with edge labels
+$\omega$.
 
-Now, the transition function will then again be defined of the type
-$\delta : Q \times \mathcal{P}(\omega) -> Q \times
-\mathcal{P}(\omega)$. This time however, the function will be
-non-deterministic, thus multiple paths will be taken in the
-flow-graph.
+% We have two separate difficulties that we have to deal with in order
+% to present the semantics. 
+As mentioned earlier, our process tree is not perfect and thus
+contains infeasible walks. We thus have to be sure not to follow such
+a path when traversing the tree. When we traverse the tree we thus
+collect all inequalities on the followed path, such that we can detect
+for contradiction. We use the same definition of a restriction as in
+\cite{abramov2000universal}: a restriction $r$ is a finite set of
+inequalities $Xa_1\ \#\ Xa_2$ and the symbol \textsf{contra}.
+
+We also need a definition that will let us deal with change of scope
+occurring when a backedge is followed. At this point we return to a
+state where a set of variables is reintroduced, as we get back to a
+previous state. We will thus have several 
+
+When the tree is traversed backwards 
+
+
+% We also have another problem that we have to deal with when
+% considering the backwards semantics for the closed process tree. We
+% can potentially
+
+\begin{equation}
+  \label{eq:delta}
+  \delta_\Gamma(q, \sigma) =
+  \begin{array}{l}
+    \left\{ (x, \widehat{e}) \in \sigma | x \in \Gamma(q) \right\} \\
+    \cup
+    \left\{ (x_e, \widehat{X_e^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+    \cup \left\{ (x_a, \widehat{X_a^\diamond}) \in \sigma \Big| x \in \Gamma(q) \land x \not \in dom(\sigma) \right\} \\
+  \end{array}
+\end{equation}
+
+\begin{figure*}
+  \centering
+  \begin{equation*}
+    \frac{
+      \omega = \texttt{.}x |-> Xa
+      \quad q +O> q'
+      \quad \sigma' = \delta_\Gamma(q', \sigma[x |-> \sigma(X_a)])
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma')
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = x |-> [Xe_1, Xe_2]
+      \quad q +O> q'
+      \quad \sigma' = \sigma[x |-> [\sigma(Xe_1), \sigma(Xe_2)]]
+      \quad \sigma'' = \delta_\Gamma(q', \sigma')
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma'')
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = \texttt{.}x_1\ \#\ \texttt{.}x_2
+      \quad q +O> q'
+      \quad r' = r \cup \{ \sigma(\texttt{.}x_1)\ \#\ \sigma(\texttt{.}x_2) \}
+      \quad r' \cap \{\textsf{contra}\} = \emptyset
+      % \quad \sigma'' = \delta_\Gamma(q', \sigma')
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r', \sigma)
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \frac{
+      \omega = x_1\ \gen\ e_2, x_3\ \gen\ e_4, \ldots, x_{n-1}\ \gen\ e_n
+      \quad q +O> q'
+      \quad \theta = (\sigma(x_1), \sigma(x_3), \ldots, \sigma(x_{n-1})) 
+             \sqcup (e_2, e_4, \ldots, e_{n})
+    }
+    {
+      |-_\Gamma (q, r, \sigma) => (q', r, \sigma\theta)
+    }
+  \end{equation*}
+  \caption{Backwards semantics}
+  \label{fig:delta}
+\end{figure*}
 
 \section{Examples}
 \subsection{Addition}
@@ -970,8 +1060,8 @@ of trees).
 
 This process tree can be seen as a flow-graph representation of the
 \texttt{Add} program. We can plug in values in place of $X_{in}$ and
-$Yf_{in}$ and follow the graph while applying contractions,
-substitutions and expansions along the way. When we reach a terminal
+$Y_{in}$ and follow the graph while applying substitutions along the
+way unifications and expansions along the way. When we reach a terminal
 node the program terminates with the value in stored in the node.
 
 \subsubsection{Forward interpretation}
