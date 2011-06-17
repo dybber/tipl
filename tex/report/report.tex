@@ -814,68 +814,58 @@ smallest relation satisfying the rules defined in Figure
   \begin{equation}
     \nfrac{
     }{
-      \texttt{.}x_1 <| \texttt{.}x_2
-    }
-    \qquad
-    \nfrac{
-    }{
-      x_1 <| x_2
-    }
-    \qquad
-    \nfrac{
-    }{
-      \texttt{.}x_1 <| x_2
-    } \tagsc{Variables}
+      \widehat{x_1} <| \widehat{x_2}
+    }\tagsc{Variables}
   \end{equation}
 
   \begin{equation}
     \nfrac{
-      e_1 <| e_1'\quad e_2 <| e_2'
+      \widehat{e_1} <| \widehat{e_1'}\quad \widehat{e_2} <| \widehat{e_2'}
     }{
-      \texttt{[$e_1$, $e_2$]} <| \texttt{[$e_1'$, $e_2'$]}
+      \texttt{[$\widehat{e_1}$, $\widehat{e_2}$]} <| \texttt{[$\widehat{e_1'}$, $\widehat{e_2'}$]}
     }
     \qquad
     \nfrac{
-      e <| e_1
+      \widehat{e} <| \widehat{e_1}
     }{
-      e <| \texttt{[$e_1$, $e_2$]}
+      \widehat{e} <| \texttt{[$\widehat{e_1}$, $\widehat{e_2}$]}
     }
     \qquad
     \nfrac{
-      e <| e_2
+      \widehat{e} <| \widehat{e_2}
     }{
-      e <| \texttt{[$e_1$, $e_2$]}
+      \widehat{e} <| \texttt{[$\widehat{e_1}$, $\widehat{e_2}$]}
     }
     \tagsc{Cons}
   \end{equation}
 
   \begin{equation}
     \nfrac{
-      ea_1 <| ea_1' \quad ea_2 <| ea_2' \quad t_1 <| t_1' \quad t_2 <| t_2'
+      \widehat{ea_1} <| \widehat{ea_1'} \quad \widehat{ea_2} <| \widehat{ea_2'} \quad \widehat{t_1} <| \widehat{t_1'} \quad \widehat{t_2} <| \widehat{t_2'}
     }{
-      \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} <| \texttt{if $ea_1'$ = $ea_2'$ then $t_1'$ else $t_2'$}
+      \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$} <| \texttt{if $\widehat{ea_1'}$ = $\widehat{ea_2'}$ then $\widehat{t_1'}$ else $\widehat{t_2'}$}
     } \tagsc{If-A}
   \end{equation}
 
   \begin{equation}
     \nfrac{
-      \exists t' \in \{ea_1, ea_2, t_1, t_2\}. t <| t'
+      \exists \widehat{t'} \in \{\widehat{ea_1}, \widehat{ea_2}, \widehat{t_1}, \widehat{t_2}\}. \widehat{t} <| \widehat{t'}
     }{
-      t <| \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$}
+      \widehat{t} <| \texttt{if $\widehat{ea_1}$ = $\widehat{ea_2}$ then $\widehat{t_1}$ else $\widehat{t_2}$}
     } \tagsc{If-B}
   \end{equation}
 
 \begin{equation}
   \nfrac{
-    \forall i \in \{0, \ldots, n\}. e_i <| e_i'
+    \forall i \in \{0, \ldots, n\}. \widehat{e_i} <| \widehat{e_i'}
   }{
-    h(e_0, \ldots, e_n) <| h(e_0', \ldots, e_n')
+    h(\widehat{e_0}, \ldots, \widehat{e_n}) <| h(\widehat{e_0'}, \ldots, \widehat{e_n'})
   } (h \in G \cup F)
   \qquad
   \nfrac{
-    \exists i \in \{0, \ldots, n\}. e <| e_i'
+    \exists i \in \{0, \ldots, n\}. \widehat{e} <| \widehat{e_i'}
   }{
-    e <| h(e_0', \ldots, e_n')
+    \widehat{e} <| h(\widehat{e_0'}, \ldots, \widehat{e_n'})
   }
  \tagsc{Call}
 \end{equation}
