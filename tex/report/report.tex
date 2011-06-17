@@ -981,11 +981,13 @@ inequalities $Xa_1\ \#\ Xa_2$ and the symbol \textsf{contra}.
 % Explain scoping change
 We also need a definition that will let us deal with change of scope
 occurring when a backedge is followed. At this point we return to a
-state where a set of variables is reintroduced, as we get back to a
-previous state. We will thus have several 
+state where a set of variables is reintroduced. That is, they are
+already in our environment, but with ``old'' values and they are
+possibly bound to meta variables of which we have registered
+inequalities between. If we keep the definition of these ``old''
+variables in our environment when following a backedge, \todo{continue here... explanation of $\delta$}
 
-
-% Define unification and explain use
+\todo{Define unification and explain use in rules}
 
 \begin{equation}
   \label{eq:delta}
@@ -1142,7 +1144,84 @@ When executing the program backwards, we can start from any of the
 terminal nodes. We unify the given output with all terminal nodes and
 execute non-deterministically from all nodes that we can unify with.
 
-Further explanation here ...
+\todo{Further explanation here ...}
+
+
+\subsection{Neq}
+\todo{Explain}
+
+\begin{tikzpicture}
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{c}=[circle,draw=black,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[fill=black!10,inner sep=2pt]
+\node[vtx] (Start)  {{Neq $X_{in}$}} [<-]
+                    child {
+                        node[leaf] (N1)  {\texttt{'true}}
+                        edge from parent {
+                          node[left] {$X_{in} \mapsto Xa_1$}
+                        }
+                    }
+            child {
+                node[c] (N3)  {}
+                    child {
+                        node[leaf] (N45)  {\texttt{'odd-length}}
+                        edge from parent {
+                          node[right] {$Xe_2 \mapsto Xa_2$}
+                        }
+                    }
+                    edge from parent {
+                      node[right] {$X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]}$}
+                    }
+            }
+;
+\node[c, right=3cm of N3] (N4) {} [<-]
+    child {
+        node[leaf] (N5)  {\texttt{'odd-x1-cons}}
+        edge from parent {
+          node[right] {$Xe_{1} \mapsto \texttt{[}Xe_5\texttt{,} Xe_6\texttt{]}$}
+        }
+    }
+;
+\node[c, right=3cm of N4] (N6) {} [<-]
+    child {
+        node[leaf] (N7)  {\texttt{'odd-x2-cons}}
+        edge from parent {
+          node[right] {$Xe_{3} \mapsto \texttt{[}Xe_7\texttt{,} Xe_8\texttt{]}$}
+        }
+    }
+;
+\node[c, right=3cm of N6] (N8) {} [<-]
+    child {
+        node[leaf] (N9)  {\texttt{'error-pair-eq}}
+        edge from parent {
+          node[right] {$Xa_3 \mapsto Xa_4$}
+        }
+    }
+;
+\node[c, right=3cm of N8] (N10) {} [<-];
+
+\node[c, above=of N10] (gen) {};
+\draw [<-] (N10) -- (gen);
+\node at(13.5,-.6){$X_{in} \gen Xe_4$};
+
+\draw [dashed,<-] (gen) -- (Start);
+\draw [<-] (N3) -- (N4);
+\node at(2.5,-1.3){$Xe_2 \mapsto \texttt{[}Xe_3\texttt{,} Xe_4\texttt{]}$};
+\draw [<-] (N4) -- (N6);
+\node at(5.9,-1.3){$Xe_1 \mapsto Xa_3$};
+\draw [<-] (N6) -- (N8);
+\node at(9.3,-1.3){$Xe_3 \mapsto Xa_4$};
+\draw [<-] (N8) -- (N10);
+\node at(12.7,-1.3){$Xa_3\ \#\ Xa_4$};
+
+% out node
+\node[c, below=3cm of N4] (Out) {$X_{out}$} [<-];
+\draw [->] (Out) .. controls +(left:5cm).. (N1) node[pos=0.5, left] {$X_{out} \gen \texttt{'true}\ $};
+\draw [->] (Out) -- (N45) node[pos=0, left, rotate=-15] {$X_{out} \gen \texttt{'odd-length}\quad$};
+\draw [->] (Out) -- (N5) node[pos=0.5, right] {$X_{out} \gen \texttt{'odd-x1-cons}$};
+\draw [->] (Out) .. controls +(right:6cm) .. (N7)  node[pos=0.5, left] {$X_{out} \gen \texttt{'odd-x2-cons}\ $};
+\draw [->] (Out) .. controls +(right:6cm) .. (N9) node[pos=0.5, right] {$\quad X_{out} \gen \texttt{'error-pair-eq}$};
+\end{tikzpicture}
 
 
 \begin{figure*}
