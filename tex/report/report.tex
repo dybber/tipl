@@ -371,7 +371,8 @@ are instances of the new general node.
 \section{Subject Language}
 \label{sec:trfl}
 In this paper we will study a small syntactically typed functional
-language, that draws inspiration from both the language studied in
+language, Tail Recursive Functional Language (TRFL), that draws
+inspiration from both the language studied in
 \cite{sorensen1998introduction} and the S-Graph language as defined in
 the papers on the Universal Resolving Algorithm
 \cite{abramov2000universal, abramov2002universal,
@@ -457,22 +458,29 @@ depending on whether they only contain atoms.
 
 As explained, the result of inverse-computation of non-injective
 functions might result in several input values for one output. The set
-of inputs might even be infinite. We represent these classes of
-inputs, by placing meta-variables in the places where they vary, and
+of inputs might even be infinite. We represent these classes of inputs
+by placing meta-variables in the places where they vary, and by
 registering constraints that should be obeyed by these variables.  We
 call such generalized values for \textit{C-expressions}, and we use
 the word \textit{contractions} to denote the constraints on
-meta-variables occurring in C-expressions. The domain of
-C-expressions is shown in Figure \ref{fig:cbnf} as
-$\mathcal{\widehat{A}}$ and $\mathcal{\widehat{E}}$. In addition we
-define terms containing such meta variables, these are denoted
-$\widehat{t} \in \widehat{\mathcal{T}}$.
+meta-variables occurring in C-expressions. The domain of C-expressions
+is shown in Figure \ref{fig:cbnf} as $\mathcal{\widehat{A}}$ and
+$\mathcal{\widehat{E}}$.
 
 A good analogy for these input-classes is the ZF-notation for
 describing mathematical sets, where we represent the left-hand side by
 \textit{C-expressions} and the right-hand side is used to specify the
 constraints on the meta-variables occurring in the
-\textit{C-expression}. 
+\textit{C-expression}.
+
+A term containing C-expressions will no longer define a single program
+state, but instead a set of program states. We distinguish such terms
+from normal program terms, and denote them by $\widehat{t} \in
+\widehat{\mathcal{T}}$. In additon to C-terms, we also have
+let-abstractions $\widehat{l}\in\widehat{\mathcal{L}}$, which bind
+C-variables to C-expressions in C-terms. These constructions are
+automatically inserted by the tracing algorithm and will be explained
+in further detail in section \ref{sec:closed_tree}.
 
 \begin{figure}\centering
   \begin{align*}
@@ -498,13 +506,12 @@ constraints on the meta-variables occurring in the
 \end{figure}
 
 \subsection{Semantics}
-Terms in TRFL are parameterized over an environment $\sigma$ and the
-set of function definitions $\Gamma$. The operational semantics is
-shown in Appendix \ref{sec:semantics}, Figure \ref{fig:semantics}
-using judgement form: $\sigma |-_\Gamma t => (t', \sigma')$. A
-judgement of this form should be interpreted as: \textit{given
-  environment $\sigma$ and function definitions $\Gamma$, the term $t$
-  steps to the term $t'$ and environment $\sigma'$.}
+Terms in TRFL fully describe a given program state. The operational
+semantics for TRFL is defined in Appendix \ref{sec:semantics}, Figure
+\ref{fig:semantics}, using the judgement form $|-_\Gamma t => t'$,
+which should be interpreted as: \textit{given program map $\Gamma$,
+  the term $t$ steps to the term $t'$}. A terminating state for a
+program is a term consisting of a single expression.
 
 \section{Closed URA}
 \label{sec:closed-ura}
@@ -1348,15 +1355,15 @@ subject.
 
   \begin{equation}
     \nfrac{
-      ea_1/ \sigma = ea_2/\sigma \quad
+      ea_1 = ea_2 \quad
     }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => (t_1, \sigma)
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => t_1
     }
     \qquad
     \nfrac{
-      ea_1/ \sigma \neq ea_2/\sigma \quad
+      ea_1 \neq ea_2 \quad
     }{
-      \sigma |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => (t_2, \sigma)
+      |-_\Gamma \texttt{if $ea_1$ = $ea_2$ then $t_1$ else $t_2$} => t_2
     } \tagsc{If}
 \end{equation}
 
@@ -1369,11 +1376,11 @@ subject.
         \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
         \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
-      e_0/\sigma = \texttt{[$v_1$, $v_2$]} \\
-      \sigma' = \sigma\{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1/\sigma, \ldots, x_n |-> e_n/\sigma\} 
+      e_0 = \texttt{[$v_1$, $v_2$]} \\
+      \theta = \{x_\alpha |-> v_1, x_\beta |-> v_2, x_1 |-> e_1, \ldots, x_n |-> e_n\} 
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => (t_1, \sigma')
+    |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => t_1\theta
   }
 \qquad
   \nfrac{
@@ -1383,10 +1390,11 @@ subject.
         \texttt{fun \textit{\rmfamily gname} [$x_\alpha$, $x_\beta$] $x_1$ $\ldots$ $x_n$ = $t_1$} \\
         \texttt{\ \ | \textit{\rmfamily gname}\ \texttt{.}$x$ \hspace{1.1cm} $x_1'$ $\ldots$ $x_n'$ = $t_2$} \\
       \end{array} \\
-      \sigma' = \sigma\{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1/\sigma, \ldots, x_n' |-> e_n/\sigma\}
+      e_0 = \texttt{'}s \\
+      \theta = \{\texttt{.}x |-> \texttt{'}s, x_1' |-> e_1, \ldots, x_n' |-> e_n\}
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => (t_2, \sigma')
+    |-_\Gamma \texttt{\textit{\rmfamily gname} $e_0$ $e_1$ $\ldots$ $e_n$} => t_2\theta
   }
   \tagsc{Call-G}
 \end{equation}
@@ -1397,10 +1405,10 @@ subject.
       \Gamma(\textit{fname}) =
         \texttt{fun \textit{\rmfamily fname} $x_1$ $x_2$ $\ldots$ $x_n$ = $t$}
         \\
-      \sigma' = \sigma\{x_1 |-> e_1/\sigma, x_2 |-> e_2/\sigma, \ldots, x_n |-> e_n/\sigma\} 
+      \theta = \{x_1 |-> e_1, x_2 |-> e_2, \ldots, x_n |-> e_n\}
     \end{array}
   }{
-    \sigma |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => (t, \sigma')
+    |-_\Gamma \texttt{\textit{\rmfamily fname} $e_1$ $e_2$ $\ldots$ $e_n$} => t\theta
   } \tagsc{Call-F}
 \end{equation}
 
