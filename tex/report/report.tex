@@ -843,10 +843,9 @@ In supercompilation\cite{sorensen1998introduction} this problem can be
 solved using the \emph{homeomorphic embedding} relation $<|$, since
 for any infinite sequence $\widehat{t_1}, \widehat{t_2}, ...$ of terms
 over the same finite set of constructors, there is guaranteed to be
-$\widehat{t_i} <| \widehat{t_j}$ for $i < j$\todo{reference
-  courcelle}. The homeomorphic embedding relation on C-terms is the
-smallest relation satisfying the rules defined in Figure
-\ref{fig:embedding}.
+$\widehat{t_i} <| \widehat{t_j}$ for $i < j$. The homeomorphic
+embedding relation on C-terms is the smallest relation satisfying the
+rules defined in Figure \ref{fig:embedding}.
 
 \begin{figure*}\centering
   \begin{equation}
@@ -1260,17 +1259,11 @@ right branch and return $Y_{in}$.
 \end{figure*}
 
 
-\subsubsection{Backward interpretation}
-When executing the program backwards, we can start from any of the
-terminal nodes. We unify the given output with all terminal nodes and
-execute non-deterministically from all nodes that we can unify with.
+%\subsubsection{Backwards interpretation}
+%When backwards interpreting the add program (see Figure
+%\ref{fig:addtree-rev}), we begin in the node labeled ``$X_{out}$'', 
 
-\todo{Further explanation here ...}
-
-
-\subsection{Neq}
-\todo{Explain}
-
+\begin{figure*}
 \begin{tikzpicture}
 \tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
 \tikzstyle{c}=[circle,draw=black,minimum size=12pt,inner sep=4pt]
@@ -1343,7 +1336,10 @@ execute non-deterministically from all nodes that we can unify with.
 \draw [->] (Out) .. controls +(right:6cm) .. (N7)  node[pos=0.5, left] {$X_{out} \gen \texttt{'odd-x2-cons}\ $};
 \draw [->] (Out) .. controls +(right:6cm) .. (N9) node[pos=0.5, right] {$\quad X_{out} \gen \texttt{'error-pair-eq}$};
 \end{tikzpicture}
-
+\caption{Reversed closed process tree for checking if a list consists
+  of inequal pairs of atoms.}
+\label{fig:neq-rev}
+\end{figure*}
 
 \begin{figure*}
   \centering
@@ -1405,7 +1401,7 @@ execute non-deterministically from all nodes that we can unify with.
 \end{tikzpicture}
 \caption{Closed process tree for addition, with edges reversed and new
   combined starting state.}
-  \label{fig:addtree}
+  \label{fig:addtree-rev}
 \end{figure*}
 
 \section{Conclusion}
