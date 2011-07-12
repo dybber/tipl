@@ -1,0 +1,437 @@
+\documentclass{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[utf8x]{inputenc}
+\usepackage[british]{babel}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{semantic}
+%\usepackage{multicol} 
+\usepackage[labelformat=empty,tableposition=above]{caption}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+%\usepackage{soul}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usetikzlibrary{positioning}
+
+
+%FONT
+\usepackage{bera}
+\usepackage[garamond]{mathdesign}
+\renewcommand{\rmdefault}{ugm} % garamond
+\renewcommand{\sfdefault}{ugm} % sans-serif font
+
+% must be included after hyperref (and float)
+% \usepackage[noend]{algorithmic}
+% \usepackage{algorithm}
+% \usepackage[noend]{algpseudocode}
+
+\title{A finite process tree for inverse interpretation}
+
+\author{\small Ulrik Rasmussen \and Martin Dybdal}
+
+\institute{\textrm{Department of Computer Science, University of Copenhagen}}
+\date{\today}
+
+\mode<presentation>
+{
+  %\usetheme{Madrid}
+  %\usetheme{Frankfurt} 
+  \definecolor{uofsgreen}{rgb}{.125,.5,.25}
+  \definecolor{natvidgreen}{rgb}{.196,.364,.239}
+  \definecolor{kugrey}{rgb}{.4,.4,.4}
+%  \usecolortheme[named=uofsgreen]{structure}
+  \usecolortheme{seahorse}
+  \usefonttheme[onlylarge]{structuresmallcapsserif}
+  \usefonttheme[onlysmall]{structurebold}
+%  \useinnertheme{circles}
+  \useoutertheme{default}
+}
+
+%\logo{\includegraphics[height=1.5cm]{diku.png}}
+
+%\setbeamersize{text margin left=1.4cm}
+
+\usenavigationsymbolstemplate{} % fjern navigation
+
+\setcounter{tocdepth}{1}
+\renewcommand\v[1]{\boldsymbol{#1}}
+
+\mathlig{::=}{\quad ::=\quad}
+\mathlig{|->}{\mapsto}
+\mathlig{<|}{\trianglelefteq}
+\mathlig{+>}{\rightsquigarrow}
+\mathlig{+O>}{\overset{\omega}{\rightsquigarrow}}
+\mathlig{<<}{\langle}
+\mathlig{>>}{\rangle}
+\mathlig{<<=}{\gen}
+\newcommand{\dom}{\ensuremath{{\rm dom}}}
+\newcommand{\anc}{\ensuremath{{\rm anc}}}
+\newcommand{\gen}{\ensuremath{~{\leq\kern-0.45em \raisebox{1pt}{$\cdot$}}~}}
+%\newcommand{\gend}{\ensuremath{~{\leq\kern \raisebox{1pt}{$\cdot$}}~}}
+\newcommand{\w}[1]{\ensuremath{\widehat{#1}}}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}[t, fragile]
+  \frametitle{Universal resolving algorithm}
+  \framesubtitle{Overview}
+  \begin{description}
+    \setlength{\parskip}{0.4cm}
+{
+  \item[Tracing] The program is traced and a \textit{process tree} is build. [covered by Ulrik]
+  \item[Tabulation] Generate a possibly infinite table of input/output
+    pairs from the \textit{process tree}
+
+  \item[Inversion] The desired output is unified with each possibly
+    output in the table. If unification succeeds, the corresponding
+    input is returned.
+}
+  \end{description}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Example program}
+  I will use the following program performing addition of
+  Peano-numerals, as example throughout the presentation:
+
+\begin{verbatim}
+fun Add [s, ss] y = Add ss ['S, y]
+  | Add .z y = if .z == 'Z then y
+               else 'error-unknown-symbol
+\end{verbatim}
+
+  \begin{center}
+\tiny{
+  \begin{tikzpicture}[scale=0.7]
+    \tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+    \tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+    \node[vtx] (N2) {\texttt{Add $X_{in}$ $Y_{in}$}} [->] child
+    [sibling distance=6cm, level distance=1.2cm] { node[vtx] (N3)
+      {\texttt{if ...}}  child [sibling distance=3cm, level
+      distance=1.5cm] { node[leaf] (N4) {\texttt{'err}} edge from
+        parent { node[left] {$Xa_1\ \#\ \texttt{'Z}$} } } child
+      [sibling distance=3cm, level distance=1.5cm]{ node[leaf] (N5)
+        {$Y_{in}$} edge from parent { node[right] {$Xa_1 \mapsto
+            \texttt{'Z}$} } } edge from parent { node[left] {$X_{in}
+          \mapsto Xa_1\quad$} } } child [sibling distance=7cm, level
+    distance=1.6cm]{ node[vtx] (N6) { $\begin{array}{l}
+          \texttt{let $X_{in}$ = $Xe_2$;} \\
+          \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+          \texttt{in Add $X_{in}$ $Y_{in}$}
+        \end{array}$
+      }
+      child [level distance=2cm] {
+        node[vtx] (N7) {
+          \texttt{Add $X_{in}$ $Y_{in}$}
+        }
+        edge from parent [left] {
+          node[right] {$
+            \begin{array}{l}
+               Xe_2 \gen X_{in} \\
+              \texttt{['S, $Y_{in}$]} \gen Y_{in}
+            \end{array}$}
+        }
+      }
+      edge from parent {
+        node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+      }
+    }
+    ;
+    \draw [dashed,->] (N7) .. controls +(left:3cm).. (N2);
+  \end{tikzpicture}}
+\end{center}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Universal resolving algorithm}
+  \framesubtitle{Tabulation} The table of input/output pairs is built
+  by following each path in the process tree until a terminal node is
+  reached.\vspace{4mm}
+
+  Tabulation of \texttt{Add} using the input class:
+  $$cls_{in} = <<\texttt{[$\widehat{Xa_1}$, ['S, 'Z]]},\ \emptyset>>$$
+
+  \vspace{4mm}
+
+  \small{
+  \begin{tabular}{ll}
+    Input class & Output expression \\ \hline
+    $<<\texttt{['Z, ['S, 'Z]]},\ \emptyset>>$ & \texttt{['S, 'Z]}\\
+    $<<\texttt{[$\widehat{Xa_1}$, ['S, 'Z]]},\ \{\widehat{Xa_1}\ \#\ \texttt{'Z}\} >>$ & \texttt{'error-unknown-symbol}\\
+    $<<\texttt{[[$\widehat{Xe_2}$, 'Z], ['S, 'Z]]},\ \emptyset>>$ & \texttt{['S, ['S, 'Z]]]}\\
+    $<<\texttt{[[$\widehat{Xe_2}$, $\widehat{Xa_1}$], ['S, 'Z]]},\ \{\widehat{Xa_1}\ \#\ \texttt{'Z}\}>>$ & \texttt{'error-unknown-symbol}\\
+    % $<<\texttt{[[$Xe_3$, [$Xe_2$, 'Z]], ['S, 'Z]]},\ \emptyset>>$ & \texttt{['S, ['S, ['S, 'Z]]]}\\
+    % $<<\texttt{[[$Xe_3$, [$Xe_2$, $Xa_1$]], ['S, 'Z]]},\ \{Xa_1\ \#\ \texttt{'Z}\}>>$ & \texttt{'error-unknown-symbol}\\
+    \hspace{2cm}\vdots & \hspace{2cm}\vdots \\
+  \end{tabular}}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Universal resolving algorithm}
+  \framesubtitle{Inversion}
+
+  The following is done in the inversion step:
+  \begin{itemize}
+  \item The desired output is unified with each output-class in the
+    table of input/output pairs.
+  \item Each row where the output unifies gives rise to a
+    corresponding input-class.
+  \item From each input-class specific input values can be generated.
+  \end{itemize}
+
+\vspace{5mm}
+
+If the desired output is \texttt{['S, ['S, 'Z]]}, unification only
+succeeds on the third row. The corresponding input class is then
+\texttt{[$Xe_1$, 'Z]}, where $Xe_1$ can take on any value.
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Flow-graph language}
+  \framesubtitle{Forward interpretation}
+
+  The closed process tree we obtain by adding generalization steps to
+  the tracing algorithm, can be seen as a flow-graph program.
+
+  \begin{center}
+{\tiny
+  \begin{tikzpicture}[scale=0.7]
+    \tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+    \tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+    \node[vtx] (N2) {\texttt{Add $X_{in}$ $Y_{in}$}} [->] child
+    [sibling distance=6cm, level distance=1.2cm] { node[vtx] (N3)
+      {\texttt{if ...}}  child [sibling distance=3cm, level
+      distance=1.5cm] { node[leaf] (N4) {\texttt{'err}} edge from
+        parent { node[left] {$Xa_1\ \#\ \texttt{'Z}$} } } child
+      [sibling distance=3cm, level distance=1.5cm]{ node[leaf] (N5)
+        {$Y_{in}$} edge from parent { node[right] {$Xa_1 \mapsto
+            \texttt{'Z}$} } } edge from parent { node[left] {$X_{in}
+          \mapsto Xa_1\quad$} } } child [sibling distance=7cm, level
+    distance=1.6cm]{ node[vtx] (N6) { $\begin{array}{l}
+          \texttt{let $X_{in}$ = $Xe_2$;} \\
+          \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+          \texttt{in Add $X_{in}$ $Y_{in}$}
+        \end{array}$
+      }
+      child [level distance=2cm] {
+        node[vtx] (N7) {
+          \texttt{Add $X_{in}$ $Y_{in}$}
+        }
+        edge from parent [left] {
+          node[right] {$
+            \begin{array}{l}
+              Xe_2 \gen X_{in} \\
+              \texttt{['S, $Y_{in}$]} \gen Y_{in}
+            \end{array}$}
+        }
+      }
+      edge from parent {
+        node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+      }
+    }
+    ;
+    \draw [dashed,->] (N7) .. controls +(left:3cm).. (N2);
+  \end{tikzpicture}
+}
+\end{center}
+
+Such closed process trees might \textit{not} be perfect. This is
+simply not possible to guarantee.
+
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Flow-graph language}
+  \framesubtitle{Conversion of process tree}
+
+\vspace{-2mm}
+  \begin{center}
+\tiny
+  \begin{tikzpicture}[scale=0.7]
+    \tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+    \tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+    \node[vtx] (N2) {\texttt{Add $X_{in}$ $Y_{in}$}} [->] child
+    [sibling distance=6cm, level distance=1.2cm] { node[vtx] (N3)
+      {\texttt{if ...}}  child [sibling distance=3cm, level
+      distance=1.5cm] { node[leaf] (N4) {\texttt{'err}} edge from
+        parent { node[left] {$Xa_1\ \#\ \texttt{'Z}$} } } child
+      [sibling distance=3cm, level distance=1.5cm]{ node[leaf] (N5)
+        {$Y_{in}$} edge from parent { node[right] {$Xa_1 \mapsto
+            \texttt{'Z}$} } } edge from parent { node[left] {$X_{in}
+          \mapsto Xa_1\quad$} } } child [sibling distance=7cm, level
+    distance=1.6cm]{ node[vtx] (N6) { $\begin{array}{l}
+          \texttt{let $X_{in}$ = $Xe_2$;} \\
+          \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+          \texttt{in Add $X_{in}$ $Y_{in}$}
+        \end{array}$
+      }
+      child [level distance=2cm] {
+        node[vtx] (N7) {
+          \texttt{Add $X_{in}$ $Y_{in}$}
+        }
+        edge from parent [left] {
+          node[right] {$
+            \begin{array}{l}
+              X_{in} \gen Xe_2 \\
+              Y_{in} \gen \texttt{['S, $Y_{in}$]}
+            \end{array}$}
+        }
+      }
+      edge from parent {
+        node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+      }
+    }
+    ;
+    \draw [dashed,->] (N7) .. controls +(left:3cm).. (N2);
+  \end{tikzpicture}
+
+\vspace{-2mm}
+{\Large $\downarrow$ }
+\vspace{1mm}
+
+\begin{tikzpicture}[scale=0.7]
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[vtx] (N2)  {\texttt{Add $X_{in}$ $Y_{in}$}} [<-]
+            child [sibling distance=6cm, level distance=1.2cm] {
+                node[vtx] (N3)  {\texttt{if ...}}
+                    child [sibling distance=3cm, level distance=1.5cm] {
+                        node[leaf] (N4)  {\texttt{'err}}
+                        edge from parent {
+                          node[left] {$Xa_1\ \#\ \texttt{'Z}$}
+                        }
+                    }
+                    child [sibling distance=3cm, level distance=1.5cm]{
+                        node[leaf] (N5)  {$Y_{in}$}
+                        edge from parent {
+                          node[right] {$Xa_1 \mapsto \texttt{'Z}$}
+                        }
+                    }
+                    edge from parent {
+                      node[left] {$X_{in} \mapsto Xa_1\quad$}
+                    }
+            }
+            child [sibling distance=7cm, level distance=1.6cm]{
+                node[vtx] (N6)  {
+                  $\begin{array}{l}
+                    \texttt{let $X_{in}$ = $Xe_2$;} \\
+                    \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+                    \texttt{in Add $X_{in}$ $Y_{in}$}
+                  \end{array}$
+                }
+                child [level distance=2cm] {
+                  node[vtx] (N7) {
+                    \texttt{Add $X_{in}$ $Y_{in}$}
+                  }
+                  edge from parent [left] {
+                    node[right] {$
+                      \begin{array}{l}
+                        X_{in} \gen Xe_2 \\
+                        Y_{in} \gen \texttt{['S, $Y_{in}$]}
+                      \end{array}$}
+                  }
+                }
+                edge from parent {
+                  node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+                }
+    }
+;
+
+\node[circle,draw,below right=of N4] (END) {$X_{out}$};
+\draw [dashed,->] (END) -- (N4);
+\node at(-4.6,-3.8){$X_{out} \gen \texttt{'err}$};
+\draw [dashed,->] (END) -- (N5);
+\node at(-1.2,-3.8){$X_{out} \gen \texttt{$Y_{in}$}$};
+\draw [dashed,<-] (N7) .. controls +(left:3cm).. (N2);
+\end{tikzpicture}
+
+\end{center}
+
+
+\end{frame}
+
+
+\begin{frame}[t, fragile]
+  \frametitle{Backward interpretation}
+  \framesubtitle{Example of inverse interpretation}
+
+ I will now show how to evaluate the program ``backwards'', given the output \texttt{['S, 'Z]}.
+
+
+  \begin{center}
+{\tiny
+    \begin{tikzpicture}[scale=0.7]
+\tikzstyle{vtx}=[fill=black!10,minimum size=12pt,inner sep=4pt]
+\tikzstyle{leaf}=[circle, draw=black,double,inner sep=2pt]
+\node[vtx] (N2)  {\texttt{Add $X_{in}$ $Y_{in}$}} [<-]
+            child [sibling distance=6cm, level distance=1.2cm] {
+                node[vtx] (N3)  {\texttt{if ...}}
+                    child [sibling distance=3cm, level distance=1.5cm] {
+                        node[leaf] (N4)  {\texttt{'err}}
+                        edge from parent {
+                          node[left] {$Xa_1\ \#\ \texttt{'Z}$}
+                        }
+                    }
+                    child [sibling distance=3cm, level distance=1.5cm]{
+                        node[leaf] (N5)  {$Y_{in}$}
+                        edge from parent {
+                          node[right] {$Xa_1 \mapsto \texttt{'Z}$}
+                        }
+                    }
+                    edge from parent {
+                      node[left] {$X_{in} \mapsto Xa_1\quad$}
+                    }
+            }
+            child [sibling distance=7cm, level distance=1.6cm]{
+                node[vtx] (N6)  {
+                  $\begin{array}{l}
+                    \texttt{let $X_{in}$ = $Xe_2$;} \\
+                    \texttt{\ \ \ \ $Y_{in}$ = ['S, $Y_{in}$]} \\
+                    \texttt{in Add $X_{in}$ $Y_{in}$}
+                  \end{array}$
+                }
+                child [level distance=2cm] {
+                  node[vtx] (N7) {
+                    \texttt{Add $X_{in}$ $Y_{in}$}
+                  }
+                  edge from parent [left] {
+                    node[right] {$
+                      \begin{array}{l}
+                        X_{in} \gen Xe_2 \\
+                        Y_{in} \gen \texttt{['S, $Y_{in}$]}
+                      \end{array}$}
+                  }
+                }
+                edge from parent {
+                  node[right] {\ $X_{in} \mapsto \texttt{[}Xe_1\texttt{,} Xe_2\texttt{]} \quad$}
+                }
+    }
+;
+
+\node[circle,draw,below right=of N4] (END) {$X_{out}$};
+\draw [dashed,->] (END) -- (N4);
+\node at(-4.6,-3.8){$X_{out} \gen \texttt{'err}$};
+\draw [dashed,->] (END) -- (N5);
+\node at(-1.2,-3.8){$X_{out} \gen \texttt{$Y_{in}$}$};
+\draw [dashed,<-] (N7) .. controls +(left:3cm).. (N2);
+\end{tikzpicture}
+}
+  \end{center}
+
+  As the process tree is not perfect, we will have to remember
+  restrictions while performing backward interpretation. (Not
+  necessary in the above example)
+
+\end{frame}
+
+
+
+\end{document}
